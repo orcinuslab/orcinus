@@ -152,7 +152,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
     <div class="panel-handle"></div>
     <div class="slider-row">
       <span class="slider-label">Historial</span>
-      <input type="range" id="timeRange" min="1" max="72" value="24" step="1">
+      <input type="range" id="timeRange" min="1" max="72" value="49" step="1">
       <span class="slider-val" id="timeVal">24h</span>
     </div>
     <div class="legend">
@@ -323,11 +323,18 @@ map.on('movestart', closePopup);
 // ── slider ────────────────────────────────────────────
 const timeRange = document.getElementById('timeRange');
 const timeVal   = document.getElementById('timeVal');
+function sliderToHours(v) { return 73 - parseInt(v); }
+function updateSliderLabel() {
+  const h = sliderToHours(timeRange.value);
+  timeVal.textContent = h <= 1 ? 'Ahora' : h + 'h';
+}
 timeRange.addEventListener('input', () => {
-  hoursWindow = parseInt(timeRange.value);
-  timeVal.textContent = hoursWindow + 'h';
+  hoursWindow = sliderToHours(timeRange.value);
+  updateSliderLabel();
   renderMarkers();
 });
+hoursWindow = sliderToHours(timeRange.value); // init
+updateSliderLabel();
 
 // ── report modal ──────────────────────────────────────
 let selType = null, cnt = 1;
