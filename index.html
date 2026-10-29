@@ -153,7 +153,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
     <div class="panel-handle"></div>
     <div class="slider-row">
       <span class="slider-label">Historial</span>
-      <input type="range" id="timeRange" min="1" max="72" value="49" step="1">
+      <input type="range" id="timeRange" min="1" max="72" value="72" step="1">
       <span class="slider-val" id="timeVal">24h</span>
     </div>
     <div class="legend">
@@ -200,9 +200,9 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 <script>
 // ── data ──────────────────────────────────────────────
 const SAMPLE = [
-  {id:'s1',lat:42.215,lng:-8.832,type:'contact',    color:'red',   time:Date.now()-22*60000,   count:3,notes:'Contacto con el casco',confirms:5},
-  {id:'s2',lat:42.178,lng:-8.868,type:'interaction',color:'orange',time:Date.now()-75*60000,   count:6,notes:'Se acercaron al barco, muy activas',confirms:3},
-  {id:'s3',lat:42.238,lng:-8.795,type:'observation',color:'green', time:Date.now()-240*60000,  count:2,notes:'',confirms:2},
+  {id:'s1',lat:42.215,lng:-8.832,type:'contact',    color:'red',   time:Date.now()-18*60000,   count:3,notes:'Contacto con el casco',confirms:5},
+  {id:'s2',lat:42.178,lng:-8.868,type:'interaction',color:'orange',time:Date.now()-55*60000,   count:6,notes:'Se acercaron al barco, muy activas',confirms:3},
+  {id:'s3',lat:42.238,lng:-8.795,type:'observation',color:'green', time:Date.now()-4*3600000,  count:2,notes:'',confirms:2},
   {id:'s4',lat:42.152,lng:-8.912,type:'observation',color:'green', time:Date.now()-18*3600000, count:4,notes:'Grupo con cría',confirms:1},
   {id:'s5',lat:42.196,lng:-8.855,type:'contact',    color:'red',   time:Date.now()-6*3600000,  count:1,notes:'',confirms:1},
 ];
@@ -229,7 +229,7 @@ const TC = {
   orange: { bg:'rgba(224,148,48,.88)',  bc:'rgba(255,200,100,.7)'  },
   green:  { bg:'rgba(61,184,132,.88)',  bc:'rgba(100,230,170,.7)'  },
 };
-const ORCA = `<svg viewBox="0 0 32 32" fill="none"><path d="M4 20 Q8 11 15 13 Q19 14 22 12 Q24 9 26 6 L27 10 Q30 13 27 17 Q24 21 19 21 Q13 21 11 24 Q7 27 4 26Z" fill="white"/><path d="M26 6 L28 3 L27 9Z" fill="white"/></svg>`;
+const ORCA = `<svg viewBox="0 0 36 30" fill="white"><path d="M6 21 Q4 18 3 15 Q4 16 5 17 Q4 14 5 11 Q6 13 6 17 Q10 12 18 11 Q26 10 30 14 Q32 18 28 21 Q22 25 12 24 Q8 22 6 21Z"/><path d="M19 11 Q20 4 22 1 Q24 6 23 11Z"/><path d="M13 23 Q9 27 7 26 Q9 22 13 22Z"/></svg>`;
 
 function ageMins(t) { return (Date.now()-t)/60000; }
 function getOp(t, maxH) {
@@ -323,7 +323,7 @@ map.on('movestart', closePopup);
 // ── slider ────────────────────────────────────────────
 const timeRange = document.getElementById('timeRange');
 const timeVal   = document.getElementById('timeVal');
-function sliderToHours(v) { return 73 - parseInt(v); }
+function sliderToHours(v) { return 74 - parseInt(v); } // right(72)=2h "Ahora", left(1)=73h
 function updateSliderLabel() {
   const h = sliderToHours(timeRange.value);
   timeVal.textContent = h <= 1 ? 'Ahora' : h + 'h';
