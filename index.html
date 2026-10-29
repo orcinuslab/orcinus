@@ -42,8 +42,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 /* map */
 #map{flex:1;position:relative;z-index:1}
 
-/* leaflet overrides — dark ocean tiles */
-.leaflet-tile-pane{filter:brightness(.85) saturate(.7) hue-rotate(185deg)}
+/* leaflet overrides */
 .leaflet-control-zoom{border:1px solid var(--border)!important;border-radius:8px!important;overflow:hidden}
 .leaflet-control-zoom a{background:var(--surface)!important;color:var(--fg)!important;border-color:var(--border)!important}
 .leaflet-control-zoom a:hover{background:var(--surface2)!important}
@@ -200,11 +199,11 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 <script>
 // ── data ──────────────────────────────────────────────
 const SAMPLE = [
-  {id:'s1',lat:42.250,lng:-8.720,type:'contact',    color:'red',   time:Date.now()-22*60000,   count:3,notes:'Contacto con el casco',confirms:5},
-  {id:'s2',lat:42.190,lng:-8.850,type:'interaction',color:'orange',time:Date.now()-75*60000,   count:6,notes:'Se acercaron al barco, muy activas',confirms:3},
-  {id:'s3',lat:42.310,lng:-8.610,type:'observation',color:'green', time:Date.now()-240*60000,  count:2,notes:'',confirms:2},
-  {id:'s4',lat:42.100,lng:-8.950,type:'observation',color:'green', time:Date.now()-18*3600000, count:4,notes:'Grupo con cría',confirms:1},
-  {id:'s5',lat:42.280,lng:-8.790,type:'contact',    color:'red',   time:Date.now()-6*3600000,  count:1,notes:'',confirms:1},
+  {id:'s1',lat:42.215,lng:-8.832,type:'contact',    color:'red',   time:Date.now()-22*60000,   count:3,notes:'Contacto con el casco',confirms:5},
+  {id:'s2',lat:42.178,lng:-8.868,type:'interaction',color:'orange',time:Date.now()-75*60000,   count:6,notes:'Se acercaron al barco, muy activas',confirms:3},
+  {id:'s3',lat:42.238,lng:-8.795,type:'observation',color:'green', time:Date.now()-240*60000,  count:2,notes:'',confirms:2},
+  {id:'s4',lat:42.152,lng:-8.912,type:'observation',color:'green', time:Date.now()-18*3600000, count:4,notes:'Grupo con cría',confirms:1},
+  {id:'s5',lat:42.196,lng:-8.855,type:'contact',    color:'red',   time:Date.now()-6*3600000,  count:1,notes:'',confirms:1},
 ];
 let sightings = [];
 try { const s = localStorage.getItem('orcinus_v4'); if(s) sightings = JSON.parse(s); } catch(e) {}
@@ -218,8 +217,9 @@ const map = L.map('map', {
   attributionControl: true,
 });
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+  subdomains: 'abcd',
   maxZoom: 19,
 }).addTo(map);
 
