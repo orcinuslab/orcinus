@@ -207,8 +207,8 @@ const SAMPLE = [
   {id:'s5',lat:42.196,lng:-8.855,type:'contact',    color:'red',   time:Date.now()-6*3600000,  count:1,notes:'',confirms:1},
 ];
 let sightings = [];
-try { const s = localStorage.getItem('orcinus_v4'); if(s) sightings = JSON.parse(s); } catch(e) {}
-if (!sightings.length) { sightings = SAMPLE; try { localStorage.setItem('orcinus_v4', JSON.stringify(sightings)); } catch(e) {} }
+try { const s = localStorage.getItem('orcinus_v5'); if(s) sightings = JSON.parse(s); } catch(e) {}
+if (!sightings.length) { sightings = SAMPLE; try { localStorage.setItem('orcinus_v5', JSON.stringify(sightings)); } catch(e) {} }
 
 // ── map ───────────────────────────────────────────────
 const map = L.map('map', {
@@ -249,7 +249,7 @@ function fmtT(t) {
 }
 function typeL(t) { return {contact:'Contacto físico',interaction:'Interacción',observation:'Observación'}[t]||t; }
 function typeC(c) { return {red:'var(--red)',orange:'var(--orange)',green:'var(--green)'}[c]; }
-function save() { try { localStorage.setItem('orcinus_v4', JSON.stringify(sightings)); } catch(e) {} }
+function save() { try { localStorage.setItem('orcinus_v5', JSON.stringify(sightings)); } catch(e) {} }
 
 // ── markers ───────────────────────────────────────────
 let hoursWindow = 24;
