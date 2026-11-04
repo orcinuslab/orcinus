@@ -6,7 +6,7 @@
 <title>Orcinus</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -215,8 +215,8 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 // ── config ────────────────────────────────────────────
 // Pega aquí los datos de Supabase (Project Settings → API).
 // Si se dejan vacíos, la app funciona en modo demo con datos de ejemplo.
-const SUPABASE_URL = '';
-const SUPABASE_KEY = '';   // clave "anon public" / "publishable" — NUNCA la service_role
+const SUPABASE_URL = 'https://xfktydldllfzqqpftjbn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_7avcbtmPIMor47EsCztvnQ_694IJc81';   // clave pública (publishable) — NUNCA la secret/service_role
 const sb = (SUPABASE_URL && SUPABASE_KEY && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;
