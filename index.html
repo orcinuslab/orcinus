@@ -145,6 +145,15 @@ button{font-family:var(--font)}
 .credits{margin-top:10px;text-align:center;font-size:10px;line-height:1.5;color:var(--fg3)}
 .credits a{color:var(--fg2);text-decoration:none}
 .credits a:hover{text-decoration:underline}
+.install-card{display:none;align-items:center;gap:12px;padding:12px;margin-bottom:12px;border-radius:12px;background:var(--accent-dim);border:1px solid var(--accent)}
+.install-card.show{display:flex}
+.install-icon{width:40px;height:40px;border-radius:10px;background:var(--accent);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.install-icon svg{width:30px;height:30px;fill:var(--on-accent)}
+.install-text{flex:1;min-width:0;line-height:1.3}
+.install-text strong{display:block;font-size:14px;color:var(--fg)}
+.install-text span{display:block;font-size:12px;color:var(--fg2)}
+.install-go{padding:9px 14px;border-radius:10px;border:none;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.install-x{background:none;border:none;color:var(--fg3);font-size:16px;cursor:pointer;padding:4px;margin-left:-4px;align-self:flex-start}
 #installLink{display:none;background:none;border:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;padding:0 6px 0 0}
 #installLink.show{display:inline}
 .queue-badge{color:var(--orange);font-weight:600}
@@ -227,6 +236,12 @@ body.placing #placeBar{display:block}
       <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div><span data-i18n="interaction"></span></div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span data-i18n="observation"></span></div>
       <div class="legend-item" style="opacity:.5"><div class="legend-dot" style="background:#888"></div><span data-i18n="older"></span></div>
+    </div>
+    <div class="install-card" id="installCard">
+      <div class="install-icon" id="installIcon"></div>
+      <div class="install-text"><strong data-i18n="installTitle"></strong><span data-i18n="installSub"></span></div>
+      <button class="install-go" id="installGo" data-i18n="installGo"></button>
+      <button class="install-x" id="installX" data-i18n-title="noThanks">✕</button>
     </div>
     <button class="primary-btn" id="reportBtn">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -341,6 +356,8 @@ const I18N = {
     install:'Instalar app', iosTitle:'Instalar Orcinus', iosIntro:'En iPhone se instala desde Safari:',
     iosSteps:['Toca el botón Compartir (el cuadrado con una flecha hacia arriba).', 'Elige «Añadir a pantalla de inicio».', 'Pulsa «Añadir». Orcinus aparecerá como una app más.'],
     iosAfter:'Si no ves la opción, abre esta página en Safari.',
+    installTitle:'Instala Orcinus', installSub:'Ábrela como una app y úsala sin cobertura en el mar', installGo:'Instalar',
+    noThanks:'No, gracias', braveHint:'Si no aparece entre tus apps, instálala desde Chrome',
   },
   en: {
     active:'{n} active', history:'History', now:'Now',
@@ -376,6 +393,8 @@ const I18N = {
     install:'Install app', iosTitle:'Install Orcinus', iosIntro:'On iPhone, install it from Safari:',
     iosSteps:['Tap the Share button (the square with an arrow pointing up).', 'Choose "Add to Home Screen".', 'Tap "Add". Orcinus will appear like any other app.'],
     iosAfter:"If you don't see the option, open this page in Safari.",
+    installTitle:'Install Orcinus', installSub:'Open it like an app and use it with no signal at sea', installGo:'Install',
+    noThanks:'No thanks', braveHint:"If it doesn't show up in your apps, install it from Chrome",
   },
   pt: {
     active:'{n} ativos', history:'Histórico', now:'Agora',
@@ -411,6 +430,8 @@ const I18N = {
     install:'Instalar app', iosTitle:'Instalar o Orcinus', iosIntro:'No iPhone, instala-se a partir do Safari:',
     iosSteps:['Toque no botão Partilhar (o quadrado com uma seta para cima).', 'Escolha «Adicionar ao ecrã principal».', 'Toque em «Adicionar». O Orcinus aparece como qualquer outra app.'],
     iosAfter:'Se não vir a opção, abra esta página no Safari.',
+    installTitle:'Instale o Orcinus', installSub:'Abra-o como uma app e use-o sem rede no mar', installGo:'Instalar',
+    noThanks:'Não, obrigado', braveHint:'Se não aparecer nas suas apps, instale-o a partir do Chrome',
   },
   fr: {
     active:'{n} actives', history:'Historique', now:'Maintenant',
@@ -446,6 +467,8 @@ const I18N = {
     install:"Installer l'app", iosTitle:'Installer Orcinus', iosIntro:"Sur iPhone, l'installation se fait depuis Safari :",
     iosSteps:['Touchez le bouton Partager (le carré avec une flèche vers le haut).', "Choisissez « Sur l'écran d'accueil ».", 'Touchez « Ajouter ». Orcinus apparaîtra comme une app.'],
     iosAfter:"Si l'option n'apparaît pas, ouvrez cette page dans Safari.",
+    installTitle:'Installez Orcinus', installSub:'Ouvrez-la comme une app et utilisez-la sans réseau en mer', installGo:'Installer',
+    noThanks:'Non merci', braveHint:"Si elle n'apparaît pas dans vos apps, installez-la depuis Chrome",
   },
 };
 
@@ -1004,25 +1027,49 @@ document.addEventListener('click', e => { if (!e.target.closest('.lang-wrap')) l
 let toastTimer = null;
 function showToast(msg) {
   const el = document.getElementById('toast');
+  const bar = document.body.classList.contains('placing') ? document.getElementById('placeBar') : document.getElementById('panel');
+  el.style.bottom = (bar.offsetHeight + 16) + 'px';           // siempre justo encima del panel, mida lo que mida
   el.textContent = msg; el.style.display = 'block'; el.style.opacity = '1';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; }, 300); }, 2600);
 }
 
 // ══ instalar en el móvil ══════════════════════════════
+// Tarjeta visible en el panel + enlace pequeño junto a los créditos.
+// Solo aparecen si el navegador permite instalar y la app no está ya instalada.
+// Si se cierra la tarjeta, no vuelve a salir en 30 días (el enlace pequeño sigue).
 const installLink = document.getElementById('installLink');
+const installCard = document.getElementById('installCard');
+document.getElementById('installIcon').innerHTML = ORCA;
 let installPrompt = null;
 const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; installLink.classList.add('show'); });
-window.addEventListener('appinstalled', () => { installPrompt = null; installLink.classList.remove('show'); });
-if (isIOS() && !isStandalone()) installLink.classList.add('show');      // iPhone no tiene aviso automático: explicarlo
-installLink.addEventListener('click', async () => {
+const isAndroidBrave = () => !!navigator.brave && /Android/i.test(navigator.userAgent);
+function cardDismissed() {
+  try { return Date.now() - Number(localStorage.getItem('orcinus_install_dismissed') || 0) < 30 * 86400000; } catch (e) { return false; }
+}
+function setInstallable(on) {
+  installLink.classList.toggle('show', on);
+  installCard.classList.toggle('show', on && !cardDismissed());
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; setInstallable(true); });
+window.addEventListener('appinstalled', () => { installPrompt = null; setInstallable(false); });
+if (isIOS() && !isStandalone()) setInstallable(true);      // iPhone no tiene aviso automático: explicarlo
+async function doInstall() {
   if (installPrompt) {
     installPrompt.prompt();
     const { outcome } = await installPrompt.userChoice;
-    if (outcome === 'accepted') installLink.classList.remove('show');
     installPrompt = null;
+    if (outcome === 'accepted') {
+      setInstallable(false);
+      if (isAndroidBrave()) setTimeout(() => showToast(t('braveHint')), 2500);   // Brave en Android a veces no la instala bien
+    }
   } else showHelp('install');
+}
+installLink.addEventListener('click', doInstall);
+document.getElementById('installGo').addEventListener('click', doInstall);
+document.getElementById('installX').addEventListener('click', () => {
+  try { localStorage.setItem('orcinus_install_dismissed', String(Date.now())); } catch (e) {}
+  installCard.classList.remove('show');
 });
 
 // ══ arranque ══════════════════════════════════════════
