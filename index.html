@@ -2,160 +2,203 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1f2d">
 <title>Orcinus</title>
+<script>
+// Aplicar el tema antes de pintar nada, para evitar un parpadeo
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('orcinus_theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') t = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
+/* ── temas ─────────────────────────────────────────── */
+:root, :root[data-theme="dark"] {
   --bg:#0d1f2d; --surface:#132333; --surface2:#1a2f42;
-  --border:rgba(255,255,255,0.10); --fg:#e8f0f7; --fg2:rgba(232,240,247,.60); --fg3:rgba(232,240,247,.35);
-  --accent:#3db8a0; --accent-dim:rgba(61,184,160,.18);
+  --border:rgba(255,255,255,0.10); --fg:#e8f0f7; --fg2:rgba(232,240,247,.62); --fg3:rgba(232,240,247,.38);
+  --accent:#3db8a0; --accent-dim:rgba(61,184,160,.18); --on-accent:#0d1f2d;
   --red:#e05252; --red-dim:rgba(224,82,82,.18);
   --orange:#e09430; --orange-dim:rgba(224,148,48,.18);
   --green:#3db884; --green-dim:rgba(61,184,132,.18);
-  --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono',monospace; --radius:14px;
+  --scrim:rgba(13,31,45,.85); --header-bg:rgba(13,31,45,.95);
+  --shadow:0 8px 32px rgba(0,0,0,.5);
+  --tiles:saturate(0.85) brightness(0.92) hue-rotate(10deg);
+  color-scheme:dark;
 }
+/* Claro: alto contraste, pensado para leerse a pleno sol */
+:root[data-theme="light"] {
+  --bg:#f3f6f8; --surface:#ffffff; --surface2:#e9eef2;
+  --border:rgba(8,28,42,.22); --fg:#081c2a; --fg2:rgba(8,28,42,.80); --fg3:rgba(8,28,42,.62);
+  --accent:#0a7563; --accent-dim:rgba(10,117,99,.14); --on-accent:#ffffff;
+  --red:#c42b2b; --red-dim:rgba(196,43,43,.12);
+  --orange:#b35900; --orange-dim:rgba(179,89,0,.12);
+  --green:#17804f; --green-dim:rgba(23,128,79,.12);
+  --scrim:rgba(8,28,42,.45); --header-bg:rgba(255,255,255,.97);
+  --shadow:0 6px 24px rgba(8,28,42,.25);
+  --tiles:none;
+  color-scheme:light;
+}
+:root { --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono',monospace; --radius:14px; }
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--fg);overflow:hidden}
-
+button{font-family:var(--font)}
 #app{display:flex;flex-direction:column;height:100%;position:relative}
 
-/* header */
+/* ── header ────────────────────────────────────────── */
 #header{
   position:absolute;top:0;left:0;right:0;z-index:1000;
-  display:flex;align-items:center;gap:10px;
-  padding:12px 16px;
-  background:linear-gradient(to bottom,rgba(13,31,45,.95) 70%,transparent);
+  display:flex;align-items:center;gap:8px;
+  padding:12px 12px 12px 16px; padding-top:calc(12px + env(safe-area-inset-top,0px));
+  background:linear-gradient(to bottom,var(--header-bg) 70%,transparent);
   pointer-events:none;
 }
 #header>*{pointer-events:auto}
 .app-logo{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.app-name{font-size:18px;font-weight:600;letter-spacing:-.3px;flex:1}
+.app-logo svg{width:28px;height:28px;fill:var(--on-accent)}
+.app-name{font-size:18px;font-weight:600;letter-spacing:-.3px;flex:1;min-width:0}
 .app-name span{color:var(--accent)}
-.header-pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;color:var(--fg2);font-family:var(--mono);display:flex;align-items:center;gap:6px}
+.header-pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 10px;font-size:12px;color:var(--fg2);font-family:var(--mono);display:flex;align-items:center;gap:6px;white-space:nowrap}
 .header-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.header-pill.offline .dot{background:var(--orange);animation:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.icon-btn{height:34px;min-width:34px;padding:0 8px;border-radius:17px;background:var(--surface);border:1px solid var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--mono)}
+.icon-btn svg{width:17px;height:17px}
+.lang-wrap{position:relative}
+#langMenu{position:absolute;top:40px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:6px;display:none;min-width:150px;z-index:1500}
+#langMenu.open{display:block}
+#langMenu button{display:flex;width:100%;justify-content:space-between;gap:12px;padding:10px 12px;border:none;background:none;color:var(--fg);font-size:14px;border-radius:8px;cursor:pointer;text-align:left}
+#langMenu button:hover,#langMenu button.current{background:var(--surface2)}
+#langMenu button span{font-family:var(--mono);font-size:11px;color:var(--fg3)}
 
-/* map */
+/* ── mapa ──────────────────────────────────────────── */
 #map{flex:1;position:relative;z-index:1}
+.leaflet-tile-pane{filter:var(--tiles)}
+.leaflet-container{background:var(--bg)}
+.leaflet-top{top:calc(64px + env(safe-area-inset-top,0px))}
+.leaflet-control-zoom,.locate-ctl{border:1px solid var(--border)!important;border-radius:8px!important;overflow:hidden;box-shadow:none!important}
+.leaflet-control-zoom a,.locate-ctl a{background:var(--surface)!important;color:var(--fg)!important;border-color:var(--border)!important}
+.leaflet-control-zoom a:hover,.locate-ctl a:hover{background:var(--surface2)!important}
+.locate-ctl a{display:flex!important;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer}
+.locate-ctl a svg{width:18px;height:18px}
+.locate-ctl.on a{color:#4a90d9!important}
+.locate-ctl.denied a{color:var(--orange)!important}
+.locate-ctl.busy a svg{animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* leaflet overrides — nautical tint */
-.leaflet-tile-pane { filter: saturate(0.85) brightness(0.92) hue-rotate(10deg); }
-.leaflet-top{top:64px}
-.leaflet-control-zoom{border:1px solid var(--border)!important;border-radius:8px!important;overflow:hidden}
-.leaflet-control-zoom a{background:var(--surface)!important;color:var(--fg)!important;border-color:var(--border)!important}
-.leaflet-control-zoom a:hover{background:var(--surface2)!important}
-.leaflet-control-attribution{background:rgba(13,31,45,.7)!important;color:var(--fg3)!important;font-size:10px!important}
-.leaflet-control-attribution a{color:var(--fg2)!important}
-.leaflet-popup-content-wrapper,.leaflet-popup-tip{display:none}
-
-/* custom markers */
-.orca-pin{
-  width:40px;height:40px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  border:2.5px solid transparent;cursor:pointer;
-  box-shadow:0 2px 8px rgba(0,0,0,.4);
-  position:relative;
-}
+/* ── marcadores ────────────────────────────────────── */
+.orca-pin{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid transparent;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);position:relative}
 .orca-pin svg{width:28px;height:28px}
-.orca-pin .cbadge{
-  position:absolute;top:-4px;right:-4px;
-  background:#fff;color:#0d1f2d;border-radius:50%;
-  width:17px;height:17px;font-size:9px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);
-}
-.user-pin{
-  width:18px;height:18px;border-radius:50%;
-  background:#4a90d9;border:3px solid #fff;
-  box-shadow:0 0 0 6px rgba(74,144,217,.25);
-}
+.orca-pin .cbadge{position:absolute;top:-4px;right:-4px;background:#fff;color:#0d1f2d;border-radius:50%;width:17px;height:17px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--mono);box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.user-pin{width:18px;height:18px;border-radius:50%;background:#4a90d9;border:3px solid #fff;box-shadow:0 0 0 6px rgba(74,144,217,.25)}
+.place-pin{width:36px;height:46px;position:relative;cursor:grab}
+.place-head{position:absolute;top:0;left:0;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
+.place-head svg{width:22px;height:22px;transform:rotate(45deg);fill:var(--on-accent)}
 
-/* popup */
-#popup{
-  position:fixed;z-index:2000;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;padding:14px;min-width:190px;
-  box-shadow:0 8px 32px rgba(0,0,0,.5);
-  display:none;
-}
-.popup-type{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
+/* ── popup de avistamiento ─────────────────────────── */
+#popup{position:fixed;z-index:2000;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;min-width:200px;max-width:250px;box-shadow:var(--shadow);display:none}
+.popup-type{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;padding-right:18px}
 .popup-time{font-size:12px;color:var(--fg2);margin-bottom:8px;font-family:var(--mono)}
-.popup-notes{font-size:13px;color:var(--fg2);margin-bottom:8px}
+.popup-notes{font-size:13px;color:var(--fg2);margin-bottom:8px;overflow-wrap:anywhere}
 .popup-count{font-size:12px;color:var(--fg3);margin-bottom:10px}
 .confirm-row{display:flex;align-items:center;gap:8px}
-.confirm-btn{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--fg2);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer}
-.confirm-btn:hover{border-color:var(--accent);color:var(--accent)}
-.confirm-count{font-size:12px;color:var(--fg3);font-family:var(--mono)}
-.popup-close{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--fg3);font-size:14px;cursor:pointer}
+.confirm-btn{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--fg2);font-size:12px;font-weight:600;cursor:pointer}
+.confirm-btn:hover:not([disabled]){border-color:var(--accent);color:var(--accent)}
+.confirm-btn[disabled]{opacity:.55;cursor:default}
+.confirm-count{font-size:12px;color:var(--fg3);font-family:var(--mono);white-space:nowrap}
+.popup-close{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--fg3);font-size:14px;cursor:pointer;padding:4px}
 .popup-own{font-size:11px;color:var(--fg3);font-style:italic}
-.report-link{display:block;margin-top:10px;background:none;border:none;padding:0;color:var(--fg3);font-family:var(--font);font-size:11px;text-decoration:underline;cursor:pointer}
+.report-link{display:block;margin-top:10px;background:none;border:none;padding:0;color:var(--fg3);font-size:11px;text-decoration:underline;cursor:pointer;text-align:left}
 .report-link.armed{color:var(--red)}
-.header-pill.offline .dot{background:var(--orange);animation:none}
 
-/* panel */
-#panel{
-  position:absolute;bottom:0;left:0;right:0;z-index:1000;
-  background:var(--surface);border-top:1px solid var(--border);
-  border-radius:var(--radius) var(--radius) 0 0;
-  padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
-}
+/* ── panel inferior ────────────────────────────────── */
+#panel{position:absolute;bottom:0;left:0;right:0;z-index:1000;background:var(--surface);border-top:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:16px 16px calc(14px + env(safe-area-inset-bottom,0px))}
 .panel-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
 .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .slider-label{font-size:11px;color:var(--fg3);font-family:var(--mono);white-space:nowrap;min-width:56px}
-#timeRange{flex:1;-webkit-appearance:none;height:3px;background:var(--surface2);border-radius:2px;outline:none}
-#timeRange::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 3px var(--accent-dim)}
-.slider-val{font-size:12px;font-family:var(--mono);color:var(--accent);min-width:28px;text-align:right}
+#timeRange{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:var(--surface2);border-radius:2px;outline:none}
+#timeRange::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 3px var(--accent-dim)}
+#timeRange::-moz-range-thumb{width:20px;height:20px;border:none;border-radius:50%;background:var(--accent);cursor:pointer}
+.slider-val{font-size:12px;font-family:var(--mono);color:var(--accent);min-width:44px;text-align:right;font-weight:500}
 .legend{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap}
-.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--fg2)}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg2)}
 .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-#reportBtn{width:100%;padding:14px;border-radius:12px;background:var(--accent);border:none;color:#0d1f2d;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
-#reportBtn:active{opacity:.85}
+.primary-btn{width:100%;padding:14px;border-radius:12px;background:var(--accent);border:none;color:var(--on-accent);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.primary-btn:active{opacity:.85}
+.primary-btn[disabled]{opacity:.6}
+.secondary-btn{padding:12px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);color:var(--fg);font-size:14px;font-weight:600;cursor:pointer}
 .credits{margin-top:10px;text-align:center;font-size:10px;line-height:1.5;color:var(--fg3)}
 .credits a{color:var(--fg2);text-decoration:none}
 .credits a:hover{text-decoration:underline}
 
-/* modal */
-#modalBg{position:fixed;inset:0;background:rgba(13,31,45,.85);z-index:3000;display:none;align-items:flex-end;padding:0 16px}
-#modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--border);border-bottom:none;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-width:520px;margin:0 auto}
-.modal-title{font-size:16px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
-.modal-orca{display:inline-flex;width:24px;height:24px}
+/* ── barra para colocar el punto ───────────────────── */
+#placeBar{position:absolute;bottom:0;left:0;right:0;z-index:1000;background:var(--surface);border-top:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:none;box-shadow:var(--shadow)}
+#placeBar p{font-size:14px;color:var(--fg);margin-bottom:6px;line-height:1.4}
+#placeDist{font-size:12px;color:var(--fg2);font-family:var(--mono);margin-bottom:14px;min-height:16px}
+.place-actions{display:flex;gap:8px}
+.place-actions .primary-btn{flex:1}
+body.placing #panel{display:none}
+body.placing #placeBar{display:block}
+
+/* ── hojas modales ─────────────────────────────────── */
+.sheet-bg{position:fixed;inset:0;background:var(--scrim);z-index:3000;display:none;align-items:flex-end;padding:0 12px}
+.sheet-bg.open{display:flex}
+.sheet{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--border);border-bottom:none;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-width:520px;margin:0 auto;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal-orca{display:inline-flex;width:24px;height:24px;flex-shrink:0}
 .modal-orca svg{width:24px;height:24px;fill:var(--accent)}
-.modal-close{margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg2);font-size:16px}
-.field-label{font-size:11px;font-weight:500;color:var(--fg3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.modal-close{margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:50%;width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg2);font-size:15px}
+.field-label{font-size:11px;font-weight:600;color:var(--fg3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
 .type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
-.type-btn{padding:12px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--fg2);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;text-align:center;line-height:1.4}
-.type-btn .type-icon{display:block;font-size:20px;margin-bottom:4px}
+.type-btn{padding:12px 6px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--fg2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;line-height:1.3}
+.type-dot{display:block;width:18px;height:18px;border-radius:50%;margin:0 auto 6px}
 .type-btn.active-red{border-color:var(--red);background:var(--red-dim);color:var(--fg)}
 .type-btn.active-orange{border-color:var(--orange);background:var(--orange-dim);color:var(--fg)}
 .type-btn.active-green{border-color:var(--green);background:var(--green-dim);color:var(--fg)}
 .count-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.count-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.count-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 #countVal{font-size:22px;font-weight:600;font-family:var(--mono);min-width:30px;text-align:center}
-.notes-input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-family:var(--font);font-size:14px;outline:none;resize:none;margin-bottom:16px}
+.loc-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);margin-bottom:18px}
+.loc-row svg{width:18px;height:18px;flex-shrink:0;color:var(--accent)}
+.loc-row.warn{border-color:var(--orange)}
+.loc-row.warn svg{color:var(--orange)}
+.loc-text{flex:1;min-width:0;font-size:13px;line-height:1.35}
+.loc-text small{display:block;color:var(--fg3);font-family:var(--mono);font-size:11px}
+.loc-adjust{background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;padding:4px}
+.notes-input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-family:var(--font);font-size:15px;outline:none;resize:none;margin-bottom:16px}
 .notes-input:focus{border-color:var(--accent)}
 .notes-input::placeholder{color:var(--fg3)}
-#submitBtn{width:100%;padding:14px;border-radius:12px;background:var(--accent);border:none;color:#0d1f2d;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer}
+.help-intro{font-size:14px;line-height:1.5;color:var(--fg2);margin-bottom:14px}
+.help-steps{padding-left:20px;margin-bottom:14px}
+.help-steps li{font-size:14px;line-height:1.5;margin-bottom:8px;color:var(--fg)}
+.help-after{font-size:13px;line-height:1.5;color:var(--fg3);margin-bottom:18px}
 
-/* toast */
-#toast{position:fixed;bottom:200px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--accent);border-radius:20px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--accent);z-index:4000;transition:opacity .3s;white-space:nowrap;pointer-events:none;display:none}
+/* ── aviso flotante ────────────────────────────────── */
+#toast{position:fixed;bottom:210px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);width:max-content;text-align:center;background:var(--surface);border:1px solid var(--accent);border-radius:20px;padding:10px 18px;font-size:13px;font-weight:600;color:var(--accent);z-index:4000;transition:opacity .3s;pointer-events:none;display:none;box-shadow:var(--shadow)}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="header">
-    <div class="app-logo">
-      <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-        <path d="M3 15 Q6 8 11 10 Q14 11 16 9 Q18 7 19 5 L20 8 Q22 10 20 13 Q18 16 14 16 Q10 16 8 18 Q5 20 3 19Z" fill="#0d1f2d"/>
-        <path d="M19 5 L21 3 L20 7Z" fill="#0d1f2d"/>
-      </svg>
-    </div>
+    <div class="app-logo" id="appLogo"></div>
     <span class="app-name">Orci<span>nus</span></span>
-    <div class="header-pill"><span class="dot"></span><span id="sightCount">0 activos</span></div>
+    <div class="header-pill"><span class="dot"></span><span id="sightCount"></span></div>
+    <div class="lang-wrap">
+      <button class="icon-btn" id="langBtn" data-i18n-title="language">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>
+        <span id="langCode">ES</span>
+      </button>
+      <div id="langMenu"></div>
+    </div>
+    <button class="icon-btn" id="themeBtn" data-i18n-title="theme"></button>
   </div>
 
   <div id="map"></div>
@@ -163,152 +206,322 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
   <div id="panel">
     <div class="panel-handle"></div>
     <div class="slider-row">
-      <span class="slider-label">Historial</span>
+      <span class="slider-label" data-i18n="history"></span>
       <input type="range" id="timeRange" min="1" max="72" value="72" step="1">
-      <span class="slider-val" id="timeVal">24h</span>
+      <span class="slider-val" id="timeVal"></span>
     </div>
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Contacto</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Interacción</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Observación</div>
-      <div class="legend-item" style="opacity:.4"><div class="legend-dot" style="background:#888"></div>Antiguo</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span data-i18n="contact"></span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div><span data-i18n="interaction"></span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span data-i18n="observation"></span></div>
+      <div class="legend-item" style="opacity:.5"><div class="legend-dot" style="background:#888"></div><span data-i18n="older"></span></div>
     </div>
-    <button id="reportBtn">
+    <button class="primary-btn" id="reportBtn">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Reportar avistamiento
+      <span data-i18n="reportBtn"></span>
     </button>
     <div class="credits">
-      Mapa &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+      <span data-i18n="mapCredit"></span> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+    </div>
+  </div>
+
+  <div id="placeBar">
+    <p data-i18n="placeHint"></p>
+    <div id="placeDist"></div>
+    <div class="place-actions">
+      <button class="secondary-btn" id="placeGps" data-i18n="useGps"></button>
+      <button class="primary-btn" id="placeDone" data-i18n="done"></button>
     </div>
   </div>
 </div>
 
 <div id="popup">
-  <button class="popup-close" onclick="closePopup()">✕</button>
+  <button class="popup-close" onclick="closePopup()" data-i18n-title="close">✕</button>
   <div id="popupContent"></div>
 </div>
 
-<div id="modalBg">
-  <div id="modal">
-    <div class="modal-title"><span class="modal-orca" id="modalOrca"></span>Nuevo avistamiento<button class="modal-close" id="closeModal">✕</button></div>
-    <div class="field-label">Tipo de interacción</div>
+<!-- formulario de reporte -->
+<div class="sheet-bg" id="modalBg">
+  <div class="sheet" id="modal">
+    <div class="modal-title"><span class="modal-orca" id="modalOrca"></span><span data-i18n="newSighting"></span><button class="modal-close" id="closeModal" data-i18n-title="close">✕</button></div>
+    <div class="field-label" data-i18n="typeLabel"></div>
     <div class="type-grid">
-      <button class="type-btn" data-type="observation" data-color="green"><span class="type-icon">🟢</span>Observación</button>
-      <button class="type-btn" data-type="interaction" data-color="orange"><span class="type-icon">🟠</span>Interacción</button>
-      <button class="type-btn" data-type="contact" data-color="red"><span class="type-icon">🔴</span>Contacto</button>
+      <button class="type-btn" data-type="observation" data-color="green"><span class="type-dot" style="background:var(--green)"></span><span data-i18n="observation"></span></button>
+      <button class="type-btn" data-type="interaction" data-color="orange"><span class="type-dot" style="background:var(--orange)"></span><span data-i18n="interaction"></span></button>
+      <button class="type-btn" data-type="contact" data-color="red"><span class="type-dot" style="background:var(--red)"></span><span data-i18n="contact"></span></button>
     </div>
-    <div class="field-label">Número de individuos</div>
+    <div class="field-label" data-i18n="countLabel"></div>
     <div class="count-row">
       <button class="count-btn" id="countMinus">−</button>
       <span id="countVal">1</span>
       <button class="count-btn" id="countPlus">+</button>
     </div>
-    <div class="field-label">Notas (opcional)</div>
-    <textarea class="notes-input" id="notesInput" rows="2" maxlength="200" placeholder="Ej: grupo familiar, macho con aleta alta..."></textarea>
-    <button id="submitBtn">Confirmar avistamiento</button>
+    <div class="field-label" data-i18n="locationLabel"></div>
+    <div class="loc-row" id="locRow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.3-7-11.5A7 7 0 0 1 19 9.5C19 14.7 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+      <div class="loc-text" id="locText"></div>
+      <button class="loc-adjust" id="locAdjust" data-i18n="adjust"></button>
+    </div>
+    <div class="field-label" data-i18n="notesLabel"></div>
+    <textarea class="notes-input" id="notesInput" rows="2" maxlength="200" data-i18n-ph="notesPh"></textarea>
+    <button class="primary-btn" id="submitBtn" data-i18n="submit"></button>
+  </div>
+</div>
+
+<!-- ayuda cuando la ubicación está bloqueada -->
+<div class="sheet-bg" id="helpBg">
+  <div class="sheet">
+    <div class="modal-title"><span data-i18n="helpTitle"></span><button class="modal-close" id="closeHelp" data-i18n-title="close">✕</button></div>
+    <p class="help-intro" data-i18n="helpIntro"></p>
+    <ol class="help-steps" id="helpSteps"></ol>
+    <p class="help-after" data-i18n="helpAfter"></p>
+    <button class="primary-btn" id="okHelp" data-i18n="gotIt"></button>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-// ── config ────────────────────────────────────────────
-// Pega aquí los datos de Supabase (Project Settings → API).
-// Si se dejan vacíos, la app funciona en modo demo con datos de ejemplo.
+// ══ configuración ═════════════════════════════════════
+// Si se vacían, la app funciona en modo demo con datos de ejemplo.
 const SUPABASE_URL = 'https://xfktydldllfzqqpftjbn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_7avcbtmPIMor47EsCztvnQ_694IJc81';   // clave pública (publishable) — NUNCA la secret/service_role
 const sb = (SUPABASE_URL && SUPABASE_KEY && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;
 
-// ── data ──────────────────────────────────────────────
+// ══ idiomas ═══════════════════════════════════════════
+// Para añadir un idioma: copiar un bloque, traducirlo y añadirlo a LANGS.
+const LANGS = { es:'Español', en:'English', pt:'Português', fr:'Français' };
+const I18N = {
+  es: {
+    active:'{n} activos', history:'Historial', now:'Ahora',
+    contact:'Contacto', interaction:'Interacción', observation:'Observación', older:'Antiguo',
+    reportBtn:'Reportar avistamiento', mapCredit:'Mapa', language:'Idioma', theme:'Cambiar tema claro/oscuro', close:'Cerrar',
+    newSighting:'Nuevo avistamiento', typeLabel:'Tipo de interacción', countLabel:'Número de individuos',
+    locationLabel:'Ubicación', notesLabel:'Notas (opcional)', notesPh:'Ej: grupo familiar, macho con aleta alta…',
+    submit:'Confirmar avistamiento', sending:'Enviando…',
+    contactFull:'Contacto físico', individuals:'{n} individuos',
+    confirm:'✓ Confirmar', confirmed:'✓ Confirmado', confShort:'{n} conf.', yours:'Tu avistamiento',
+    reportAbuse:'Reportar contenido inapropiado', reportSure:'¿Seguro? Toca otra vez para reportar',
+    srcGps:'GPS', srcManual:'marcado en el mapa',
+    locGps:'Tu posición GPS', locWaiting:'Buscando tu posición…', locManual:'Punto marcado en el mapa',
+    locNone:'Sin GPS: marca el punto en el mapa', distance:'a {d} de ti', adjust:'Ajustar',
+    placeHint:'Arrastra el marcador o toca el mapa donde están las orcas', useGps:'Usar mi GPS', done:'Listo',
+    locate:'Mi ubicación',
+    tConnectErr:'No se pudo conectar. Inténtalo de nuevo', tCantConfirm:'No puedes confirmar este avistamiento',
+    tConfirmErr:'Error al confirmar', tAlready:'Ya lo habías confirmado', tConfirmed:'Confirmación añadida ✓',
+    tReportErr:'Error al reportar', tReported:'Gracias, lo revisaremos', tPickType:'Selecciona el tipo de interacción',
+    tRate:'Has llegado al límite de 10 avistamientos por hora', tSendErr:'Error al enviar. Inténtalo de nuevo',
+    tAdded:'¡Avistamiento añadido!', tGeoErr:'No se pudo obtener tu ubicación', tGeoNo:'Este navegador no puede darte la ubicación',
+    helpTitle:'Ubicación bloqueada',
+    helpIntro:'En su momento elegiste no compartir tu ubicación. Por tu privacidad, el navegador no deja que la web vuelva a preguntar: tienes que activarla tú.',
+    helpIos:['Toca «aA» en la barra de dirección de Safari → «Ajustes del sitio web» → Ubicación → «Permitir».',
+             'Si no funciona: Ajustes del iPhone → Privacidad y seguridad → Localización. Actívala y, en «Sitios web de Safari», elige «Al usar la app».',
+             'Recarga esta página.'],
+    helpOther:['Toca el icono que hay a la izquierda de la dirección web (candado o ajustes).',
+               'Entra en «Permisos» o «Configuración del sitio» → Ubicación → «Permitir».',
+               'Recarga esta página. Comprueba también que la ubicación del móvil está activada.'],
+    helpAfter:'Mientras tanto puedes usar la app y marcar los avistamientos a mano en el mapa.', gotIt:'Entendido',
+  },
+  en: {
+    active:'{n} active', history:'History', now:'Now',
+    contact:'Contact', interaction:'Interaction', observation:'Observation', older:'Older',
+    reportBtn:'Report a sighting', mapCredit:'Map', language:'Language', theme:'Switch light/dark theme', close:'Close',
+    newSighting:'New sighting', typeLabel:'Type of encounter', countLabel:'Number of orcas',
+    locationLabel:'Location', notesLabel:'Notes (optional)', notesPh:'e.g. family group, male with tall fin…',
+    submit:'Submit sighting', sending:'Sending…',
+    contactFull:'Physical contact', individuals:'{n} orcas',
+    confirm:'✓ Confirm', confirmed:'✓ Confirmed', confShort:'{n} conf.', yours:'Your sighting',
+    reportAbuse:'Report inappropriate content', reportSure:'Sure? Tap again to report',
+    srcGps:'GPS', srcManual:'marked on map',
+    locGps:'Your GPS position', locWaiting:'Finding your position…', locManual:'Point marked on the map',
+    locNone:'No GPS: mark the spot on the map', distance:'{d} from you', adjust:'Adjust',
+    placeHint:'Drag the marker or tap the map where the orcas are', useGps:'Use my GPS', done:'Done',
+    locate:'My location',
+    tConnectErr:"Couldn't connect. Please try again", tCantConfirm:"You can't confirm this sighting",
+    tConfirmErr:"Couldn't confirm", tAlready:'You already confirmed it', tConfirmed:'Confirmation added ✓',
+    tReportErr:"Couldn't send the report", tReported:"Thanks, we'll review it", tPickType:'Choose the type of encounter',
+    tRate:"You've reached the limit of 10 sightings per hour", tSendErr:"Couldn't send. Please try again",
+    tAdded:'Sighting added!', tGeoErr:"Couldn't get your location", tGeoNo:"This browser can't provide your location",
+    helpTitle:'Location is blocked',
+    helpIntro:"You previously chose not to share your location. For your privacy, the browser won't let the site ask again — you need to turn it on yourself.",
+    helpIos:['Tap "aA" in Safari\'s address bar → "Website Settings" → Location → "Allow".',
+             'If that doesn\'t work: iPhone Settings → Privacy & Security → Location Services. Turn it on and, under "Safari Websites", choose "While Using the App".',
+             'Reload this page.'],
+    helpOther:['Tap the icon to the left of the web address (padlock or settings).',
+               'Open "Permissions" or "Site settings" → Location → "Allow".',
+               'Reload this page. Also check that location is turned on in your phone.'],
+    helpAfter:'Meanwhile you can still use the app and mark sightings by hand on the map.', gotIt:'Got it',
+  },
+  pt: {
+    active:'{n} ativos', history:'Histórico', now:'Agora',
+    contact:'Contacto', interaction:'Interação', observation:'Observação', older:'Antigo',
+    reportBtn:'Reportar avistamento', mapCredit:'Mapa', language:'Idioma', theme:'Mudar tema claro/escuro', close:'Fechar',
+    newSighting:'Novo avistamento', typeLabel:'Tipo de interação', countLabel:'Número de indivíduos',
+    locationLabel:'Localização', notesLabel:'Notas (opcional)', notesPh:'Ex.: grupo familiar, macho com barbatana alta…',
+    submit:'Confirmar avistamento', sending:'A enviar…',
+    contactFull:'Contacto físico', individuals:'{n} indivíduos',
+    confirm:'✓ Confirmar', confirmed:'✓ Confirmado', confShort:'{n} conf.', yours:'O seu avistamento',
+    reportAbuse:'Denunciar conteúdo impróprio', reportSure:'Tem a certeza? Toque novamente para denunciar',
+    srcGps:'GPS', srcManual:'marcado no mapa',
+    locGps:'A sua posição GPS', locWaiting:'A procurar a sua posição…', locManual:'Ponto marcado no mapa',
+    locNone:'Sem GPS: marque o ponto no mapa', distance:'a {d} de si', adjust:'Ajustar',
+    placeHint:'Arraste o marcador ou toque no mapa onde estão as orcas', useGps:'Usar o meu GPS', done:'Feito',
+    locate:'A minha localização',
+    tConnectErr:'Não foi possível ligar. Tente novamente', tCantConfirm:'Não pode confirmar este avistamento',
+    tConfirmErr:'Erro ao confirmar', tAlready:'Já o tinha confirmado', tConfirmed:'Confirmação adicionada ✓',
+    tReportErr:'Erro ao denunciar', tReported:'Obrigado, vamos verificar', tPickType:'Selecione o tipo de interação',
+    tRate:'Atingiu o limite de 10 avistamentos por hora', tSendErr:'Erro ao enviar. Tente novamente',
+    tAdded:'Avistamento adicionado!', tGeoErr:'Não foi possível obter a sua localização', tGeoNo:'Este navegador não consegue dar a sua localização',
+    helpTitle:'Localização bloqueada',
+    helpIntro:'Anteriormente escolheu não partilhar a sua localização. Por privacidade, o navegador não deixa o site voltar a perguntar: tem de a ativar você.',
+    helpIos:['Toque em «aA» na barra de endereço do Safari → «Definições do site» → Localização → «Permitir».',
+             'Se não funcionar: Definições do iPhone → Privacidade e segurança → Serviços de localização. Ative-os e, em «Sites do Safari», escolha «Durante a utilização da app».',
+             'Recarregue esta página.'],
+    helpOther:['Toque no ícone à esquerda do endereço (cadeado ou definições).',
+               'Abra «Permissões» ou «Definições do site» → Localização → «Permitir».',
+               'Recarregue esta página. Verifique também que a localização do telemóvel está ativada.'],
+    helpAfter:'Entretanto pode usar a app e marcar os avistamentos à mão no mapa.', gotIt:'Entendido',
+  },
+  fr: {
+    active:'{n} actives', history:'Historique', now:'Maintenant',
+    contact:'Contact', interaction:'Interaction', observation:'Observation', older:'Ancien',
+    reportBtn:'Signaler une observation', mapCredit:'Carte', language:'Langue', theme:'Changer de thème clair/sombre', close:'Fermer',
+    newSighting:'Nouvelle observation', typeLabel:'Type de rencontre', countLabel:"Nombre d'orques",
+    locationLabel:'Position', notesLabel:'Notes (facultatif)', notesPh:'Ex. : groupe familial, mâle à grand aileron…',
+    submit:"Envoyer l'observation", sending:'Envoi…',
+    contactFull:'Contact physique', individuals:'{n} orques',
+    confirm:'✓ Confirmer', confirmed:'✓ Confirmée', confShort:'{n} conf.', yours:'Votre observation',
+    reportAbuse:'Signaler un contenu inapproprié', reportSure:'Vous êtes sûr ? Touchez à nouveau pour signaler',
+    srcGps:'GPS', srcManual:'placé sur la carte',
+    locGps:'Votre position GPS', locWaiting:'Recherche de votre position…', locManual:'Point placé sur la carte',
+    locNone:'Pas de GPS : placez le point sur la carte', distance:'à {d} de vous', adjust:'Ajuster',
+    placeHint:'Faites glisser le repère ou touchez la carte là où sont les orques', useGps:'Utiliser mon GPS', done:'OK',
+    locate:'Ma position',
+    tConnectErr:'Connexion impossible. Réessayez', tCantConfirm:'Vous ne pouvez pas confirmer cette observation',
+    tConfirmErr:'Erreur lors de la confirmation', tAlready:"Vous l'aviez déjà confirmée", tConfirmed:'Confirmation ajoutée ✓',
+    tReportErr:'Erreur lors du signalement', tReported:'Merci, nous allons vérifier', tPickType:'Choisissez le type de rencontre',
+    tRate:'Vous avez atteint la limite de 10 observations par heure', tSendErr:"Échec de l'envoi. Réessayez",
+    tAdded:'Observation ajoutée !', tGeoErr:"Impossible d'obtenir votre position", tGeoNo:'Ce navigateur ne peut pas fournir votre position',
+    helpTitle:'Position bloquée',
+    helpIntro:"Vous avez refusé de partager votre position. Pour protéger votre vie privée, le navigateur n'autorise pas le site à redemander : vous devez l'activer vous-même.",
+    helpIos:['Touchez « aA » dans la barre d\'adresse de Safari → « Réglages du site web » → Position → « Autoriser ».',
+             'Si ça ne marche pas : Réglages de l\'iPhone → Confidentialité et sécurité → Service de localisation. Activez-le et, dans « Sites web Safari », choisissez « Lorsque l\'app est active ».',
+             'Rechargez cette page.'],
+    helpOther:["Touchez l'icône à gauche de l'adresse web (cadenas ou réglages).",
+               'Ouvrez « Autorisations » ou « Paramètres du site » → Position → « Autoriser ».',
+               'Rechargez cette page. Vérifiez aussi que la localisation du téléphone est activée.'],
+    helpAfter:"En attendant, vous pouvez utiliser l'app et placer les observations à la main sur la carte.", gotIt:'Compris',
+  },
+};
+
+function detectLang() {
+  try { const s = localStorage.getItem('orcinus_lang'); if (I18N[s]) return s; } catch (e) {}
+  for (const l of (navigator.languages || [navigator.language || 'en'])) {
+    const code = String(l).slice(0, 2).toLowerCase();
+    if (I18N[code]) return code;
+  }
+  return 'en';
+}
+let lang = detectLang();
+function t(key, vars) {
+  let s = (I18N[lang] && I18N[lang][key]) ?? I18N.en[key] ?? key;
+  if (vars && typeof s === 'string') for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+  return s;
+}
+
+// ══ datos ═════════════════════════════════════════════
 const SAMPLE = [
-  {id:'s1',lat:42.215,lng:-8.832,type:'contact',    color:'red',   time:Date.now()-18*60000,   count:3,notes:'Contacto con el casco',confirms:5},
-  {id:'s2',lat:42.178,lng:-8.868,type:'interaction',color:'orange',time:Date.now()-55*60000,   count:6,notes:'Se acercaron al barco, muy activas',confirms:3},
-  {id:'s3',lat:42.238,lng:-8.795,type:'observation',color:'green', time:Date.now()-4*3600000,  count:2,notes:'',confirms:2},
-  {id:'s4',lat:42.152,lng:-8.912,type:'observation',color:'green', time:Date.now()-18*3600000, count:4,notes:'Grupo con cría',confirms:1},
-  {id:'s5',lat:42.196,lng:-8.855,type:'contact',    color:'red',   time:Date.now()-6*3600000,  count:1,notes:'',confirms:1},
+  {id:'s1',lat:42.215,lng:-8.832,type:'contact',    color:'red',   time:Date.now()-18*60000,   count:3,notes:'Contacto con el casco',confirms:5,source:'gps'},
+  {id:'s2',lat:42.178,lng:-8.868,type:'interaction',color:'orange',time:Date.now()-55*60000,   count:6,notes:'Se acercaron al barco, muy activas',confirms:3,source:'gps'},
+  {id:'s3',lat:42.238,lng:-8.795,type:'observation',color:'green', time:Date.now()-4*3600000,  count:2,notes:'',confirms:2,source:'manual'},
+  {id:'s4',lat:42.152,lng:-8.912,type:'observation',color:'green', time:Date.now()-18*3600000, count:4,notes:'Grupo con cría',confirms:1,source:'gps'},
+  {id:'s5',lat:42.196,lng:-8.855,type:'contact',    color:'red',   time:Date.now()-6*3600000,  count:1,notes:'',confirms:1,source:'gps'},
 ];
 let sightings = [];
 if (!sb) {
-  try { const s = localStorage.getItem('orcinus_v5'); if(s) sightings = JSON.parse(s); } catch(e) {}
-  if (!sightings.length) { sightings = SAMPLE; try { localStorage.setItem('orcinus_v5', JSON.stringify(sightings)); } catch(e) {} }
+  try { const s = localStorage.getItem('orcinus_v5'); if (s) sightings = JSON.parse(s); } catch (e) {}
+  if (!sightings.length) { sightings = SAMPLE; try { localStorage.setItem('orcinus_v5', JSON.stringify(sightings)); } catch (e) {} }
 }
-
-// Avistamientos propios y ya confirmados por este dispositivo (solo para la interfaz;
-// la base de datos lo impone de verdad)
-function loadSet(k) { try { return new Set(JSON.parse(localStorage.getItem(k) || '[]')); } catch(e) { return new Set(); } }
-function saveSet(k, set) { try { localStorage.setItem(k, JSON.stringify([...set].slice(-500))); } catch(e) {} }
+// Propios / confirmados / reportados por este dispositivo (solo interfaz; la BD lo impone de verdad)
+function loadSet(k) { try { return new Set(JSON.parse(localStorage.getItem(k) || '[]')); } catch (e) { return new Set(); } }
+function saveSet(k, set) { try { localStorage.setItem(k, JSON.stringify([...set].slice(-500))); } catch (e) {} }
 const mine = loadSet('orcinus_mine'), confirmed = loadSet('orcinus_confirmed'), reported = loadSet('orcinus_reported');
 
-// ── map ───────────────────────────────────────────────
-const map = L.map('map', {
-  center: [42.22, -8.81],
-  zoom: 11,
-  zoomControl: true,
-  attributionControl: false,   // los créditos están en el panel inferior (aquí quedaban tapados)
-});
+// ══ mapa ══════════════════════════════════════════════
+const map = L.map('map', { center:[42.22, -8.81], zoom:11, zoomControl:true, attributionControl:false });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-}).addTo(map);
-
-// ── helpers ───────────────────────────────────────────
+// ══ utilidades ════════════════════════════════════════
 const TC = {
-  red:    { bg:'rgba(224,82,82,.88)',   bc:'rgba(255,140,140,.75)' },
-  orange: { bg:'rgba(224,148,48,.88)',  bc:'rgba(255,200,100,.7)'  },
-  green:  { bg:'rgba(61,184,132,.88)',  bc:'rgba(100,230,170,.7)'  },
+  red:    { bg:'rgba(224,82,82,.9)',   bc:'rgba(255,140,140,.8)' },
+  orange: { bg:'rgba(224,148,48,.9)',  bc:'rgba(255,200,100,.75)' },
+  green:  { bg:'rgba(61,184,132,.9)',  bc:'rgba(100,230,170,.75)' },
 };
+const TYPE_COLOR = { observation:'green', interaction:'orange', contact:'red' };
 const ORCA = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90">
   <ellipse transform="matrix(-0.8359 0.5489 -0.5489 -0.8359 114.2132 30.2543)" cx="52.583" cy="32.202" rx="7.063" ry="3.263"/>
   <path d="M75.112,19.229c-1.954-1.162-5.459-10.526-40.16-2.536c0,0-19.251-6.505-14.427-2.82c0,0,6.482,4.241,4.606,7.792C22.59,26.475,3.175,44.961,19.55,70.89c0,0-2.924,3.899-1.754,8.579c0.905,3.621,3.095-1.285,4.038-5.587c0.268-1.221,0.435-2.391,0.443-3.306c0-0.025,0.002-0.053,0.002-0.077c0,0-1.784-3.869-1.729-9.266c-0.006,0.069-0.043,0.644,0.112,2.956c0.209,3.101-0.138,4.557-0.649,5.508c-0.512,0.948-3.286-4.048-2.559-5.862c0.607-1.522-0.366-3.497-0.366-3.497c1.581,0.974,3.456,0.881,3.461,0.881c0.062-5.702,2.183-13.104,10.628-19.459c-0.011,0.007-0.028,0.019-0.028,0.019c-4.826-3.582-8.651,2.697-8.651,2.697c-0.95,1.022-3.082,4.088-3.509,0.439c-1.097-9.358,9.333-13.315,13.232-9.431c2.463,2.453,4.093,2.996,4.093,2.996c-0.066,0.035-0.151,0.083-0.246,0.139c2.617-1.444,5.647-2.799,9.167-4.021l13.497-3.669c2.095-3.79-1.401-4.691-1.401-4.691c6.618-6.434,8.628-3.65,8.628-3.65s2.159-0.895,3.983-0.518c3.811,0.792,5.708,1.301,6.714,0.664C77.663,21.937,77.934,20.907,75.112,19.229z M65.56,20.008c-2.192,2.681-4.447,0.584-6.806,0c-2.359-0.585-5.258-1.303-3.333-1.754C55.421,18.254,68.057,16.955,65.56,20.008z"/>
   <path d="M21.755,26.455c0,0,8.566-8.51,8.639-5.115c0.073,3.396,0.073,3.762,4.972,1.423c0,0-6.186,4.562-7.752,2.588c-1.932-2.432-5.725,2.968-8.306,4.811L21.755,26.455z"/>
 </svg>`;
+const ICON_SUN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
+const ICON_LOCATE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>';
 
-function esc(str) { return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+document.getElementById('appLogo').innerHTML = ORCA;
 document.getElementById('modalOrca').innerHTML = ORCA;
 
-function ageMins(t) { return (Date.now()-t)/60000; }
-function getOp(t, maxH) {
-  const m = ageMins(t), mx = maxH*60;
+function esc(str) { return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function ageMins(ts) { return (Date.now() - ts) / 60000; }
+function getOp(ts, maxH) {
+  const m = ageMins(ts), mx = maxH * 60;
   if (m > mx) return 0;
-  return Math.max(.12, 1-(m/mx)*.88);
+  return Math.max(.12, 1 - (m / mx) * .88);
 }
-function fmtT(t) {
-  const m = ageMins(t);
-  if (m < 60) return `Hace ${Math.round(m)} min`;
-  if (m < 1440) return `Hace ${Math.round(m/60)} h`;
-  return `Hace ${Math.round(m/1440)} días`;
+function fmtT(ts) {
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric:'always', style:'short' });
+  const m = ageMins(ts);
+  if (m < 60)   return rtf.format(-Math.max(1, Math.round(m)), 'minute');
+  if (m < 1440) return rtf.format(-Math.round(m / 60), 'hour');
+  return rtf.format(-Math.round(m / 1440), 'day');
 }
-function typeL(t) { return {contact:'Contacto físico',interaction:'Interacción',observation:'Observación'}[t]||t; }
-function typeC(c) { return {red:'var(--red)',orange:'var(--orange)',green:'var(--green)'}[c]; }
-function save() { if (sb) return; try { localStorage.setItem('orcinus_v5', JSON.stringify(sightings)); } catch(e) {} }
-const TYPE_COLOR = { observation:'green', interaction:'orange', contact:'red' };
+function fmtDist(meters) {
+  const nf = new Intl.NumberFormat(lang, { maximumFractionDigits: meters < 10000 ? 1 : 0 });
+  return meters < 1000 ? Math.round(meters / 10) * 10 + ' m' : nf.format(meters / 1000) + ' km';
+}
+function typeL(type) { return { contact:t('contactFull'), interaction:t('interaction'), observation:t('observation') }[type] || type; }
+function typeC(c) { return { red:'var(--red)', orange:'var(--orange)', green:'var(--green)' }[c]; }
+function save() { if (sb) return; try { localStorage.setItem('orcinus_v5', JSON.stringify(sightings)); } catch (e) {} }
 
-// ── backend ───────────────────────────────────────────
-const COLS = 'id,created_at,lat,lng,type,count,notes,confirms';
+// ══ backend ═══════════════════════════════════════════
+let hasSourceCol = true;   // pasa a false si aún no se ejecutó la migración de la columna "source"
+const colsSel = () => 'id,created_at,lat,lng,type,count,notes,confirms' + (hasSourceCol ? ',source' : '');
 function fromRow(r) {
   return { id:r.id, lat:r.lat, lng:r.lng, type:r.type, color:TYPE_COLOR[r.type] || 'green',
-           time:Date.parse(r.created_at), count:r.count, notes:r.notes || '', confirms:r.confirms };
+           time:Date.parse(r.created_at), count:r.count, notes:r.notes || '', confirms:r.confirms, source:r.source || null };
 }
 function upsertLocal(s) {
   const i = sightings.findIndex(x => x.id === s.id);
   if (i >= 0) sightings[i] = s; else sightings.unshift(s);
 }
-function setOnline(ok) {
-  document.querySelector('.header-pill').classList.toggle('offline', !ok);
-}
+function setOnline(ok) { document.querySelector('.header-pill').classList.toggle('offline', !ok); }
 async function ensureSession() {
   const { data } = await sb.auth.getSession();
   if (data.session) return true;
   const { error } = await sb.auth.signInAnonymously();
-  if (error) { console.error(error); showToast('No se pudo conectar. Inténtalo de nuevo'); return false; }
+  if (error) { console.error(error); showToast(t('tConnectErr')); return false; }
   return true;
 }
 async function fetchSightings() {
-  const since = new Date(Date.now() - 74*3600000).toISOString();
-  const { data, error } = await sb.from('sightings').select(COLS)
+  const since = new Date(Date.now() - 74 * 3600000).toISOString();
+  let { data, error } = await sb.from('sightings').select(colsSel())
     .gte('created_at', since).order('created_at', { ascending:false }).limit(1000);
+  if (error && hasSourceCol && /source/.test(error.message || '')) {
+    hasSourceCol = false;
+    ({ data, error } = await sb.from('sightings').select(colsSel())
+      .gte('created_at', since).order('created_at', { ascending:false }).limit(1000));
+  }
   if (error) { console.error(error); setOnline(false); return; }
   setOnline(true);
   sightings = data.map(fromRow);
@@ -317,224 +530,356 @@ async function fetchSightings() {
 function subscribeRealtime() {
   sb.channel('sightings-live')
     .on('postgres_changes', { event:'*', schema:'public', table:'sightings' }, p => {
-      if (p.eventType === 'DELETE') { sightings = sightings.filter(x => x.id !== p.old.id); }
-      else if (p.new && p.new.id) { upsertLocal(fromRow(p.new)); }
+      if (p.eventType === 'DELETE') sightings = sightings.filter(x => x.id !== p.old.id);
+      else if (p.new && p.new.id) upsertLocal(fromRow(p.new));
       renderMarkers();
     })
     .subscribe(status => { if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setOnline(false); });
 }
 
-// ── markers ───────────────────────────────────────────
+// ══ marcadores ════════════════════════════════════════
 let hoursWindow = 24;
-let leafletMarkers = {};
-let userMarker = null;
-
+const leafletMarkers = {};
 function makeIcon(s, op) {
   const c = TC[s.color];
   const badge = s.confirms > 0 ? `<div class="cbadge">${s.confirms}</div>` : '';
-  return L.divIcon({
-    className: '',
-    html: `<div class="orca-pin" style="background:${c.bg};border-color:${c.bc};opacity:${op}">${ORCA}${badge}</div>`,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-  });
+  return L.divIcon({ className:'', iconSize:[40, 40], iconAnchor:[20, 20],
+    html:`<div class="orca-pin" style="background:${c.bg};border-color:${c.bc};opacity:${op}">${ORCA}${badge}</div>` });
 }
-
 function renderMarkers() {
   let active = 0;
   const ids = new Set(sightings.map(s => s.id));
-  Object.keys(leafletMarkers).forEach(id => {
-    if (!ids.has(id)) { map.removeLayer(leafletMarkers[id]); delete leafletMarkers[id]; }
-  });
+  Object.keys(leafletMarkers).forEach(id => { if (!ids.has(id)) { map.removeLayer(leafletMarkers[id]); delete leafletMarkers[id]; } });
   sightings.forEach(s => {
     const op = getOp(s.time, hoursWindow);
-    if (op <= 0) {
-      if (leafletMarkers[s.id]) { map.removeLayer(leafletMarkers[s.id]); delete leafletMarkers[s.id]; }
-      return;
-    }
-    if (leafletMarkers[s.id]) {
-      leafletMarkers[s.id].setIcon(makeIcon(s, op));
-    } else {
-      const m = L.marker([s.lat, s.lng], { icon: makeIcon(s, op) }).addTo(map);
-      m.on('click', () => { const cur = sightings.find(x => x.id === s.id); if (cur) showPopup(cur, m); });
+    if (op <= 0) { if (leafletMarkers[s.id]) { map.removeLayer(leafletMarkers[s.id]); delete leafletMarkers[s.id]; } return; }
+    if (leafletMarkers[s.id]) leafletMarkers[s.id].setIcon(makeIcon(s, op));
+    else {
+      const m = L.marker([s.lat, s.lng], { icon:makeIcon(s, op) }).addTo(map);
+      m.on('click', () => { if (placing) return; const cur = sightings.find(x => x.id === s.id); if (cur) showPopup(cur); });
       leafletMarkers[s.id] = m;
     }
     if (op > 0.2) active++;
   });
-  document.getElementById('sightCount').textContent = `${active} activos`;
+  document.getElementById('sightCount').textContent = t('active', { n:active });
 }
 
-// ── popup ─────────────────────────────────────────────
+// ══ popup ═════════════════════════════════════════════
 const popupEl = document.getElementById('popup');
 const popupContent = document.getElementById('popupContent');
 let openId = null;
-
-function showPopup(s, marker) {
+function showPopup(s) {
   openId = s.id;
+  const src = s.source === 'manual' ? ' · ' + t('srcManual') : s.source === 'gps' ? ' · ' + t('srcGps') : '';
   popupContent.innerHTML = `
-    <div class="popup-type" style="color:${typeC(s.color)}">${typeL(s.type)}</div>
-    <div class="popup-time">${fmtT(s.time)}</div>
-    ${s.count > 1 ? `<div class="popup-count">${s.count} individuos</div>` : ''}
+    <div class="popup-type" style="color:${typeC(s.color)}">${esc(typeL(s.type))}</div>
+    <div class="popup-time">${esc(fmtT(s.time) + src)}</div>
+    ${s.count > 1 ? `<div class="popup-count">${esc(t('individuals', { n:s.count }))}</div>` : ''}
     ${s.notes ? `<div class="popup-notes">${esc(s.notes)}</div>` : ''}
     ${mine.has(s.id)
-      ? `<div class="confirm-row"><span class="popup-own">Tu avistamiento</span><span class="confirm-count" style="margin-left:auto">${s.confirms} conf.</span></div>`
+      ? `<div class="confirm-row"><span class="popup-own">${esc(t('yours'))}</span><span class="confirm-count" style="margin-left:auto">${esc(t('confShort', { n:s.confirms }))}</span></div>`
       : `<div class="confirm-row">
-           <button class="confirm-btn" onclick="doConfirm('${esc(s.id)}')" ${confirmed.has(s.id) ? 'disabled style="opacity:.5;cursor:default"' : ''}>${confirmed.has(s.id) ? '✓ Confirmado' : '✓ Confirmar'}</button>
-           <span class="confirm-count">${s.confirms} conf.</span>
+           <button class="confirm-btn" onclick="doConfirm('${esc(s.id)}')" ${confirmed.has(s.id) ? 'disabled' : ''}>${esc(confirmed.has(s.id) ? t('confirmed') : t('confirm'))}</button>
+           <span class="confirm-count">${esc(t('confShort', { n:s.confirms }))}</span>
          </div>
-         ${sb && !reported.has(s.id) ? `<button class="report-link" onclick="doReport(this,'${esc(s.id)}')">Reportar contenido inapropiado</button>` : ''}`}`;
+         ${sb && !reported.has(s.id) ? `<button class="report-link" onclick="doReport(this,'${esc(s.id)}')">${esc(t('reportAbuse'))}</button>` : ''}`}`;
+  // colocar encima del marcador, dentro de la pantalla
+  popupEl.style.display = 'block'; popupEl.style.left = '-9999px';
+  const w = popupEl.offsetWidth, h = popupEl.offsetHeight;
   const pt = map.latLngToContainerPoint([s.lat, s.lng]);
-  const mapRect = document.getElementById('map').getBoundingClientRect();
-  let left = mapRect.left + pt.x - 95;
-  let top  = mapRect.top  + pt.y - 170;
-  if (left < 8) left = 8;
-  if (left + 200 > window.innerWidth - 8) left = window.innerWidth - 208;
-  if (top < 60) top = mapRect.top + pt.y + 30;
-  popupEl.style.left = left + 'px';
-  popupEl.style.top  = top  + 'px';
-  popupEl.style.display = 'block';
+  const r = document.getElementById('map').getBoundingClientRect();
+  let left = r.left + pt.x - w / 2, top = r.top + pt.y - h - 28;
+  left = Math.min(Math.max(8, left), window.innerWidth - w - 8);
+  if (top < 70) top = r.top + pt.y + 28;
+  popupEl.style.left = left + 'px'; popupEl.style.top = top + 'px';
 }
-
 window.closePopup = () => { popupEl.style.display = 'none'; openId = null; };
+function refreshPopup() { if (openId) { const s = sightings.find(x => x.id === openId); s ? showPopup(s) : closePopup(); } }
+
 window.doConfirm = async id => {
   const s = sightings.find(x => x.id === id); if (!s || confirmed.has(id) || mine.has(id)) return;
   closePopup();
   if (sb) {
     if (!(await ensureSession())) return;
-    const { error } = await sb.from('confirmations').insert({ sighting_id: id });
-    if (error && error.code !== '23505') {
-      console.error(error);
-      showToast(error.code === '42501' ? 'No puedes confirmar este avistamiento' : 'Error al confirmar');
-      return;
-    }
-    if (error) { confirmed.add(id); saveSet('orcinus_confirmed', confirmed); showToast('Ya lo habías confirmado'); return; }
+    const { error } = await sb.from('confirmations').insert({ sighting_id:id });
+    if (error && error.code !== '23505') { console.error(error); showToast(error.code === '42501' ? t('tCantConfirm') : t('tConfirmErr')); return; }
+    if (error) { confirmed.add(id); saveSet('orcinus_confirmed', confirmed); showToast(t('tAlready')); return; }
   }
   s.confirms++; confirmed.add(id); saveSet('orcinus_confirmed', confirmed);
-  save(); renderMarkers(); showToast('Confirmación añadida ✓');
+  save(); renderMarkers(); showToast(t('tConfirmed'));
 };
 window.doReport = async (btn, id) => {
-  if (!btn.classList.contains('armed')) {        // primer toque: pedir confirmación
-    btn.classList.add('armed'); btn.textContent = '¿Seguro? Toca otra vez para reportar'; return;
-  }
+  if (!btn.classList.contains('armed')) { btn.classList.add('armed'); btn.textContent = t('reportSure'); return; }
   closePopup();
   if (!(await ensureSession())) return;
-  const { error } = await sb.from('reports').insert({ sighting_id: id });
-  if (error && error.code !== '23505') { console.error(error); showToast('Error al reportar'); return; }
+  const { error } = await sb.from('reports').insert({ sighting_id:id });
+  if (error && error.code !== '23505') { console.error(error); showToast(t('tReportErr')); return; }
   reported.add(id); saveSet('orcinus_reported', reported);
-  showToast('Gracias, lo revisaremos');
+  showToast(t('tReported'));
 };
-
-map.on('click', closePopup);
 map.on('movestart', closePopup);
 
-// ── slider ────────────────────────────────────────────
+// ══ deslizador de historial ═══════════════════════════
 const timeRange = document.getElementById('timeRange');
-const timeVal   = document.getElementById('timeVal');
-function sliderToHours(v) { return 74 - parseInt(v); } // right(72)=2h "Ahora", left(1)=73h
-function updateSliderLabel() {
-  const h = sliderToHours(timeRange.value);
-  timeVal.textContent = h <= 1 ? 'Ahora' : h + 'h';
+const timeVal = document.getElementById('timeVal');
+function sliderToHours(v) { return 74 - parseInt(v, 10); }   // derecha = 2 h, izquierda = 73 h
+function updateSliderLabel() { const h = sliderToHours(timeRange.value); timeVal.textContent = h <= 1 ? t('now') : h + ' h'; }
+timeRange.addEventListener('input', () => { hoursWindow = sliderToHours(timeRange.value); updateSliderLabel(); renderMarkers(); });
+hoursWindow = sliderToHours(timeRange.value);
+
+// ══ geolocalización ═══════════════════════════════════
+// No se pide al abrir la app: solo al pulsar "mi ubicación" o "reportar".
+let userLat = null, userLng = null, hasFix = false, userMarker = null;
+let geoState = navigator.geolocation ? 'unknown' : 'unsupported';   // unknown | prompt | granted | denied | unsupported
+let watchId = null, centerOnFix = false, geoRequestedAt = 0;
+const geoListeners = [];
+
+const LocateCtl = L.Control.extend({
+  options:{ position:'topleft' },
+  onAdd() {
+    const div = L.DomUtil.create('div', 'leaflet-bar locate-ctl');
+    div.innerHTML = `<a role="button" href="#">${ICON_LOCATE}</a>`;
+    L.DomEvent.disableClickPropagation(div);
+    L.DomEvent.on(div.firstChild, 'click', e => { L.DomEvent.preventDefault(e); onLocateClick(); });
+    return div;
+  },
+});
+const locateCtl = new LocateCtl().addTo(map);
+function updateLocateCtl() {
+  const el = locateCtl.getContainer();
+  el.classList.toggle('on', hasFix);
+  el.classList.toggle('denied', geoState === 'denied');
+  el.classList.toggle('busy', watchId !== null && !hasFix && geoState !== 'denied');
+  el.firstChild.title = t('locate'); el.firstChild.setAttribute('aria-label', t('locate'));
 }
-timeRange.addEventListener('input', () => {
-  hoursWindow = sliderToHours(timeRange.value);
-  updateSliderLabel();
-  renderMarkers();
-});
-hoursWindow = sliderToHours(timeRange.value); // init
-updateSliderLabel();
+function onGeoSuccess(pos) {
+  hasFix = true; geoState = 'granted';
+  userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+  const icon = L.divIcon({ className:'', html:'<div class="user-pin"></div>', iconSize:[18, 18], iconAnchor:[9, 9] });
+  if (!userMarker) userMarker = L.marker([userLat, userLng], { icon, zIndexOffset:-100, interactive:false }).addTo(map);
+  else userMarker.setLatLng([userLat, userLng]);
+  if (centerOnFix) { centerOnFix = false; map.setView([userLat, userLng], Math.max(map.getZoom(), 12)); }
+  updateLocateCtl(); geoListeners.forEach(f => f());
+}
+function onGeoError(err) {
+  if (err.code === 1) {                       // permiso denegado
+    geoState = 'denied';
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    // Si la respuesta es instantánea, el navegador ni preguntó: estaba bloqueado de antes → explicar cómo activarlo.
+    // Si el usuario acaba de pulsar "Bloquear", no insistir.
+    if (centerOnFix) { centerOnFix = false; if (Date.now() - geoRequestedAt < 800) showGeoHelp(); }
+  } else if (centerOnFix && !hasFix) { centerOnFix = false; showToast(t('tGeoErr')); }
+  updateLocateCtl(); geoListeners.forEach(f => f());
+}
+function startGeo() {
+  if (!navigator.geolocation || watchId !== null || geoState === 'denied') return;
+  geoRequestedAt = Date.now();
+  watchId =navigator.geolocation.watchPosition(onGeoSuccess, onGeoError, { enableHighAccuracy:true, maximumAge:15000, timeout:30000 });
+  updateLocateCtl();
+}
+function onLocateClick() {
+  if (geoState === 'unsupported') { showToast(t('tGeoNo')); return; }
+  if (geoState === 'denied') { showGeoHelp(); return; }
+  if (hasFix) { map.setView([userLat, userLng], Math.max(map.getZoom(), 12)); return; }
+  centerOnFix = true; startGeo();
+}
+// Saber el estado del permiso sin preguntar al usuario
+if (navigator.permissions && navigator.geolocation) {
+  navigator.permissions.query({ name:'geolocation' }).then(st => {
+    const apply = () => {
+      geoState = st.state;                      // granted | prompt | denied
+      if (st.state === 'granted') startGeo();   // ya dio permiso antes: empezar sin preguntar
+      updateLocateCtl(); geoListeners.forEach(f => f());
+    };
+    apply(); st.onchange = apply;
+  }).catch(() => {});
+}
 
-// ── report modal ──────────────────────────────────────
+// Ayuda para desbloquear la ubicación
+const helpBg = document.getElementById('helpBg');
+function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+function renderHelpSteps() { document.getElementById('helpSteps').innerHTML = t(isIOS() ? 'helpIos' : 'helpOther').map(s => `<li>${esc(s)}</li>`).join(''); }
+function showGeoHelp() { renderHelpSteps(); helpBg.classList.add('open'); }
+document.getElementById('closeHelp').onclick = document.getElementById('okHelp').onclick = () => helpBg.classList.remove('open');
+helpBg.addEventListener('click', e => { if (e.target === helpBg) helpBg.classList.remove('open'); });
+
+// ══ formulario de reporte ═════════════════════════════
 let selType = null, cnt = 1;
+let reportPos = null;          // { lat, lng, source:'gps'|'manual' }
+let submitAfterPlace = false;
 const modalBg = document.getElementById('modalBg');
-document.getElementById('reportBtn').addEventListener('click', () => { modalBg.style.display = 'flex'; });
-document.getElementById('closeModal').addEventListener('click', () => { modalBg.style.display = 'none'; });
-modalBg.addEventListener('click', e => { if (e.target === modalBg) modalBg.style.display = 'none'; });
-
-document.querySelectorAll('.type-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.type-btn').forEach(b => b.className = 'type-btn');
-    selType = btn.dataset.type;
-    btn.classList.add('active-' + btn.dataset.color);
-  });
-});
-
 const countVal = document.getElementById('countVal');
-document.getElementById('countMinus').addEventListener('click', () => { if (cnt > 1) countVal.textContent = --cnt; });
-document.getElementById('countPlus').addEventListener('click',  () => { if (cnt < 20) countVal.textContent = ++cnt; });
-
 const submitBtn = document.getElementById('submitBtn');
-submitBtn.addEventListener('click', async () => {
-  if (!selType) { showToast('Selecciona el tipo de interacción'); return; }
-  // Posición: GPS del barco si la tenemos; si no, el centro del mapa
-  const pos = hasFix ? { lat:userLat, lng:userLng } : map.getCenter();
-  const payload = {
-    lat: +pos.lat.toFixed(5), lng: +pos.lng.toFixed(5),
-    type: selType, count: cnt,
-    notes: document.getElementById('notesInput').value.trim().slice(0, 200),
-  };
-  let s;
-  if (sb) {
-    submitBtn.disabled = true; submitBtn.textContent = 'Enviando…';
-    const ok = await ensureSession();
-    const res = ok ? await sb.from('sightings').insert(payload).select(COLS).single() : null;
-    submitBtn.disabled = false; submitBtn.textContent = 'Confirmar avistamiento';
-    if (!res) return;
-    if (res.error) {
-      console.error(res.error);
-      showToast(/rate_limit/.test(res.error.message) ? 'Has llegado al límite de 10 avistamientos por hora' : 'Error al enviar. Inténtalo de nuevo');
-      return;
-    }
-    s = fromRow(res.data);
-    mine.add(s.id); saveSet('orcinus_mine', mine);
-  } else {
-    s = { id:'u' + Date.now(), ...payload, color:TYPE_COLOR[selType], time:Date.now(), confirms:0 };
-    mine.add(s.id); saveSet('orcinus_mine', mine);
-  }
-  upsertLocal(s); save(); renderMarkers();
-  modalBg.style.display = 'none';
-  selType = null; cnt = 1;
+
+function openForm() {
+  closePopup();
+  if (!reportPos || (reportPos.source === 'gps' && hasFix)) reportPos = hasFix ? { lat:userLat, lng:userLng, source:'gps' } : null;
+  if (!hasFix && geoState !== 'denied') startGeo();      // aquí sí tiene sentido pedir la ubicación
+  updateLocLine();
+  modalBg.classList.add('open');
+}
+function closeForm() { modalBg.classList.remove('open'); }
+function resetForm() {
+  selType = null; cnt = 1; reportPos = null; submitAfterPlace = false;
   document.querySelectorAll('.type-btn').forEach(b => b.className = 'type-btn');
   countVal.textContent = '1';
   document.getElementById('notesInput').value = '';
-  map.setView([s.lat, s.lng], map.getZoom());
-  showToast(hasFix ? '¡Avistamiento añadido!' : '¡Añadido en el centro del mapa (sin GPS)!');
+}
+function updateLocLine() {
+  // Si llega el GPS mientras el formulario está abierto y no se marcó a mano, usarlo
+  if (hasFix && (!reportPos || reportPos.source === 'gps')) reportPos = { lat:userLat, lng:userLng, source:'gps' };
+  const row = document.getElementById('locRow'), txt = document.getElementById('locText');
+  let main, sub = '';
+  if (reportPos && reportPos.source === 'gps') { main = t('locGps'); sub = `${reportPos.lat.toFixed(4)}, ${reportPos.lng.toFixed(4)}`; }
+  else if (reportPos) {
+    main = t('locManual');
+    sub = hasFix ? t('distance', { d:fmtDist(map.distance([userLat, userLng], [reportPos.lat, reportPos.lng])) })
+                 : `${reportPos.lat.toFixed(4)}, ${reportPos.lng.toFixed(4)}`;
+  }
+  else if (watchId !== null && geoState !== 'denied') main = t('locWaiting');
+  else main = t('locNone');
+  row.classList.toggle('warn', !reportPos);
+  txt.innerHTML = esc(main) + (sub ? `<small>${esc(sub)}</small>` : '');
+}
+geoListeners.push(() => { if (modalBg.classList.contains('open')) updateLocLine(); if (placing) updatePlaceBar(); });
+
+document.getElementById('reportBtn').addEventListener('click', openForm);
+document.getElementById('closeModal').addEventListener('click', closeForm);
+modalBg.addEventListener('click', e => { if (e.target === modalBg) closeForm(); });
+document.querySelectorAll('.type-btn').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.type-btn').forEach(b => b.className = 'type-btn');
+  selType = btn.dataset.type; btn.classList.add('active-' + btn.dataset.color);
+}));
+document.getElementById('countMinus').addEventListener('click', () => { if (cnt > 1) countVal.textContent = --cnt; });
+document.getElementById('countPlus').addEventListener('click',  () => { if (cnt < 50) countVal.textContent = ++cnt; });
+document.getElementById('locAdjust').addEventListener('click', () => startPlacing(false));
+
+// ── colocar el punto en el mapa ──
+let placing = false, placeMarker = null;
+const placeIcon = L.divIcon({ className:'', iconSize:[36, 46], iconAnchor:[18, 44], html:`<div class="place-pin"><div class="place-head">${ORCA}</div></div>` });
+function startPlacing(thenSubmit) {
+  submitAfterPlace = thenSubmit;
+  closeForm(); closePopup();
+  placing = true; document.body.classList.add('placing');
+  const start = reportPos ? L.latLng(reportPos.lat, reportPos.lng) : (hasFix ? L.latLng(userLat, userLng) : map.getCenter());
+  placeMarker = L.marker(start, { icon:placeIcon, draggable:true, autoPan:true, zIndexOffset:1000 }).addTo(map);
+  placeMarker.on('drag', updatePlaceBar);
+  map.panTo(start);
+  updatePlaceBar();
+}
+function updatePlaceBar() {
+  if (!placeMarker) return;
+  const p = placeMarker.getLatLng();
+  document.getElementById('placeDist').textContent = hasFix
+    ? t('distance', { d:fmtDist(map.distance([userLat, userLng], p)) })
+    : `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`;
+  document.getElementById('placeGps').style.display = hasFix ? '' : 'none';
+}
+function endPlacing(pos) {
+  placing = false; document.body.classList.remove('placing');
+  if (placeMarker) { map.removeLayer(placeMarker); placeMarker = null; }
+  reportPos = pos;
+  updateLocLine(); modalBg.classList.add('open');
+  if (submitAfterPlace) { submitAfterPlace = false; doSubmit(); }
+}
+map.on('click', e => { if (placing && placeMarker) { placeMarker.setLatLng(e.latlng); updatePlaceBar(); } else closePopup(); });
+document.getElementById('placeDone').addEventListener('click', () => {
+  const p = placeMarker.getLatLng();
+  // Si apenas se movió del GPS (menos de 15 m), se sigue considerando GPS
+  const isGps = hasFix && map.distance([userLat, userLng], p) < 15;
+  endPlacing({ lat:p.lat, lng:p.lng, source: isGps ? 'gps' : 'manual' });
 });
+document.getElementById('placeGps').addEventListener('click', () => { if (hasFix) endPlacing({ lat:userLat, lng:userLng, source:'gps' }); });
 
-// ── geolocation ───────────────────────────────────────
-let userLat = 42.22, userLng = -8.81, hasFix = false;
-if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(pos => {
-    hasFix = true;
-    userLat = pos.coords.latitude;
-    userLng = pos.coords.longitude;
-    const userIcon = L.divIcon({
-      className: '',
-      html: '<div class="user-pin"></div>',
-      iconSize: [18, 18],
-      iconAnchor: [9, 9],
-    });
-    if (!userMarker) {
-      userMarker = L.marker([userLat, userLng], { icon: userIcon, zIndexOffset: -100 }).addTo(map);
-    } else {
-      userMarker.setLatLng([userLat, userLng]);
+// ── envío ──
+async function doSubmit() {
+  if (!selType) { showToast(t('tPickType')); return; }
+  if (!reportPos) { startPlacing(true); return; }    // sin GPS ni punto marcado: pedir que lo marque
+  const payload = {
+    lat:+reportPos.lat.toFixed(5), lng:+reportPos.lng.toFixed(5), type:selType, count:cnt,
+    notes:document.getElementById('notesInput').value.trim().slice(0, 200),
+  };
+  if (hasSourceCol) payload.source = reportPos.source;
+  let s;
+  if (sb) {
+    submitBtn.disabled = true; submitBtn.textContent = t('sending');
+    let res = null;
+    if (await ensureSession()) {
+      res = await sb.from('sightings').insert(payload).select(colsSel()).single();
+      if (res.error && hasSourceCol && /source/.test(res.error.message || '')) {   // migración aún no aplicada
+        hasSourceCol = false; delete payload.source;
+        res = await sb.from('sightings').insert(payload).select(colsSel()).single();
+      }
     }
-  }, () => {}, { enableHighAccuracy: true });
+    submitBtn.disabled = false; submitBtn.textContent = t('submit');
+    if (!res) return;
+    if (res.error) { console.error(res.error); showToast(/rate_limit/.test(res.error.message) ? t('tRate') : t('tSendErr')); return; }
+    s = fromRow(res.data);
+  } else {
+    s = { id:'u' + Date.now(), ...payload, source:reportPos.source, color:TYPE_COLOR[selType], time:Date.now(), confirms:0 };
+  }
+  mine.add(s.id); saveSet('orcinus_mine', mine);
+  upsertLocal(s); save(); renderMarkers();
+  closeForm(); resetForm();
+  map.setView([s.lat, s.lng], map.getZoom());
+  showToast(t('tAdded'));
 }
+submitBtn.addEventListener('click', doSubmit);
 
-// ── toast ─────────────────────────────────────────────
+// ══ tema ══════════════════════════════════════════════
+const themeBtn = document.getElementById('themeBtn');
+function currentTheme() { return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
+function applyTheme(th, persist) {
+  document.documentElement.setAttribute('data-theme', th);
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', th === 'light' ? '#ffffff' : '#0d1f2d');
+  themeBtn.innerHTML = th === 'light' ? ICON_MOON : ICON_SUN;   // muestra a qué tema se cambia
+  if (persist) { try { localStorage.setItem('orcinus_theme', th); } catch (e) {} }
+}
+themeBtn.addEventListener('click', () => applyTheme(currentTheme() === 'light' ? 'dark' : 'light', true));
+if (window.matchMedia) matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', e => {
+  let saved = null; try { saved = localStorage.getItem('orcinus_theme'); } catch (_) {}
+  if (!saved) applyTheme(e.matches ? 'light' : 'dark', false);   // seguir al sistema mientras no se elija a mano
+});
+applyTheme(currentTheme(), false);
+
+// ══ idioma ════════════════════════════════════════════
+const langMenu = document.getElementById('langMenu');
+function applyLang(code, persist) {
+  lang = I18N[code] ? code : 'en';
+  if (persist) { try { localStorage.setItem('orcinus_lang', lang); } catch (e) {} }
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); el.setAttribute('aria-label', t(el.dataset.i18nTitle)); });
+  document.getElementById('langCode').textContent = lang.toUpperCase();
+  langMenu.innerHTML = Object.entries(LANGS).map(([c, name]) =>
+    `<button data-lang="${c}" class="${c === lang ? 'current' : ''}">${name}<span>${c.toUpperCase()}</span></button>`).join('');
+  if (submitBtn.disabled) submitBtn.textContent = t('sending');
+  updateSliderLabel(); renderMarkers(); refreshPopup(); updateLocateCtl();
+  if (modalBg.classList.contains('open')) updateLocLine();
+  if (helpBg.classList.contains('open')) renderHelpSteps();
+  if (placing) updatePlaceBar();
+}
+document.getElementById('langBtn').addEventListener('click', e => { e.stopPropagation(); langMenu.classList.toggle('open'); });
+langMenu.addEventListener('click', e => { const b = e.target.closest('button[data-lang]'); if (b) { applyLang(b.dataset.lang, true); langMenu.classList.remove('open'); } });
+document.addEventListener('click', e => { if (!e.target.closest('.lang-wrap')) langMenu.classList.remove('open'); });
+
+// ══ aviso flotante ════════════════════════════════════
+let toastTimer = null;
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.style.display = 'block'; t.style.opacity = '1';
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => { t.style.display = 'none'; }, 300); }, 2200);
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display = 'block'; el.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; }, 300); }, 2600);
 }
 
-// ── init ──────────────────────────────────────────────
-renderMarkers();
-setInterval(renderMarkers, 60000);           // actualizar transparencias por antigüedad
+// ══ arranque ══════════════════════════════════════════
+applyLang(lang, false);
+setInterval(() => { renderMarkers(); refreshPopup(); }, 60000);   // actualizar transparencias y "hace X min"
 if (sb) {
   fetchSightings();
   subscribeRealtime();
-  setInterval(fetchSightings, 120000);       // red de seguridad: recoge ocultados y cortes de conexión
+  setInterval(fetchSightings, 120000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchSightings(); });
 }
 </script>
