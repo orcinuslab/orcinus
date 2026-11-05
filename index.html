@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d1f2d">
 <title>Orcinus</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Orcinus">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
 // Aplicar el tema antes de pintar nada, para evitar un parpadeo
 (function () {
@@ -138,6 +145,11 @@ button{font-family:var(--font)}
 .credits{margin-top:10px;text-align:center;font-size:10px;line-height:1.5;color:var(--fg3)}
 .credits a{color:var(--fg2);text-decoration:none}
 .credits a:hover{text-decoration:underline}
+#installLink{display:none;background:none;border:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;padding:0 6px 0 0}
+#installLink.show{display:inline}
+.queue-badge{color:var(--orange);font-weight:600}
+.orca-pin.pending{border-style:dashed!important;border-color:#fff!important;filter:saturate(.6)}
+.popup-pending{font-size:12px;color:var(--orange);font-weight:600}
 
 /* ── barra para colocar el punto ───────────────────── */
 #placeBar{position:absolute;bottom:0;left:0;right:0;z-index:1000;background:var(--surface);border-top:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:none;box-shadow:var(--shadow)}
@@ -221,6 +233,7 @@ body.placing #placeBar{display:block}
       <span data-i18n="reportBtn"></span>
     </button>
     <div class="credits">
+      <button id="installLink" data-i18n="install"></button>
       <span data-i18n="mapCredit"></span> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
     </div>
   </div>
@@ -271,10 +284,10 @@ body.placing #placeBar{display:block}
 <!-- ayuda cuando la ubicación está bloqueada -->
 <div class="sheet-bg" id="helpBg">
   <div class="sheet">
-    <div class="modal-title"><span data-i18n="helpTitle"></span><button class="modal-close" id="closeHelp" data-i18n-title="close">✕</button></div>
-    <p class="help-intro" data-i18n="helpIntro"></p>
+    <div class="modal-title"><span id="helpTitle"></span><button class="modal-close" id="closeHelp" data-i18n-title="close">✕</button></div>
+    <p class="help-intro" id="helpIntro"></p>
     <ol class="help-steps" id="helpSteps"></ol>
-    <p class="help-after" data-i18n="helpAfter"></p>
+    <p class="help-after" id="helpAfter"></p>
     <button class="primary-btn" id="okHelp" data-i18n="gotIt"></button>
   </div>
 </div>
@@ -323,6 +336,11 @@ const I18N = {
                'Entra en «Permisos» o «Configuración del sitio» → Ubicación → «Permitir».',
                'Recarga esta página. Comprueba también que la ubicación del móvil está activada.'],
     helpAfter:'Mientras tanto puedes usar la app y marcar los avistamientos a mano en el mapa.', gotIt:'Entendido',
+    pending:'⏳ Pendiente de envío', tQueued:'Sin conexión: se enviará cuando vuelva la señal',
+    tQueueSent:'Avistamientos pendientes enviados ✓', tQueueDropped:'Un avistamiento pendiente no se pudo enviar',
+    install:'Instalar app', iosTitle:'Instalar Orcinus', iosIntro:'En iPhone se instala desde Safari:',
+    iosSteps:['Toca el botón Compartir (el cuadrado con una flecha hacia arriba).', 'Elige «Añadir a pantalla de inicio».', 'Pulsa «Añadir». Orcinus aparecerá como una app más.'],
+    iosAfter:'Si no ves la opción, abre esta página en Safari.',
   },
   en: {
     active:'{n} active', history:'History', now:'Now',
@@ -353,6 +371,11 @@ const I18N = {
                'Open "Permissions" or "Site settings" → Location → "Allow".',
                'Reload this page. Also check that location is turned on in your phone.'],
     helpAfter:'Meanwhile you can still use the app and mark sightings by hand on the map.', gotIt:'Got it',
+    pending:'⏳ Waiting to send', tQueued:"No connection: it'll be sent when the signal returns",
+    tQueueSent:'Pending sightings sent ✓', tQueueDropped:"A pending sighting couldn't be sent",
+    install:'Install app', iosTitle:'Install Orcinus', iosIntro:'On iPhone, install it from Safari:',
+    iosSteps:['Tap the Share button (the square with an arrow pointing up).', 'Choose "Add to Home Screen".', 'Tap "Add". Orcinus will appear like any other app.'],
+    iosAfter:"If you don't see the option, open this page in Safari.",
   },
   pt: {
     active:'{n} ativos', history:'Histórico', now:'Agora',
@@ -383,6 +406,11 @@ const I18N = {
                'Abra «Permissões» ou «Definições do site» → Localização → «Permitir».',
                'Recarregue esta página. Verifique também que a localização do telemóvel está ativada.'],
     helpAfter:'Entretanto pode usar a app e marcar os avistamentos à mão no mapa.', gotIt:'Entendido',
+    pending:'⏳ Por enviar', tQueued:'Sem rede: será enviado quando o sinal voltar',
+    tQueueSent:'Avistamentos pendentes enviados ✓', tQueueDropped:'Não foi possível enviar um avistamento pendente',
+    install:'Instalar app', iosTitle:'Instalar o Orcinus', iosIntro:'No iPhone, instala-se a partir do Safari:',
+    iosSteps:['Toque no botão Partilhar (o quadrado com uma seta para cima).', 'Escolha «Adicionar ao ecrã principal».', 'Toque em «Adicionar». O Orcinus aparece como qualquer outra app.'],
+    iosAfter:'Se não vir a opção, abra esta página no Safari.',
   },
   fr: {
     active:'{n} actives', history:'Historique', now:'Maintenant',
@@ -413,6 +441,11 @@ const I18N = {
                'Ouvrez « Autorisations » ou « Paramètres du site » → Position → « Autoriser ».',
                'Rechargez cette page. Vérifiez aussi que la localisation du téléphone est activée.'],
     helpAfter:"En attendant, vous pouvez utiliser l'app et placer les observations à la main sur la carte.", gotIt:'Compris',
+    pending:"⏳ En attente d'envoi", tQueued:'Pas de réseau : elle sera envoyée au retour du signal',
+    tQueueSent:'Observations en attente envoyées ✓', tQueueDropped:"Une observation en attente n'a pas pu être envoyée",
+    install:"Installer l'app", iosTitle:'Installer Orcinus', iosIntro:"Sur iPhone, l'installation se fait depuis Safari :",
+    iosSteps:['Touchez le bouton Partager (le carré avec une flèche vers le haut).', "Choisissez « Sur l'écran d'accueil ».", 'Touchez « Ajouter ». Orcinus apparaîtra comme une app.'],
+    iosAfter:"Si l'option n'apparaît pas, ouvrez cette page dans Safari.",
   },
 };
 
@@ -451,7 +484,7 @@ const mine = loadSet('orcinus_mine'), confirmed = loadSet('orcinus_confirmed'), 
 
 // ══ mapa ══════════════════════════════════════════════
 const map = L.map('map', { center:[42.22, -8.81], zoom:11, zoomControl:true, attributionControl:false });
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
 
 // ══ utilidades ════════════════════════════════════════
 const TC = {
@@ -495,37 +528,130 @@ function typeC(c) { return { red:'var(--red)', orange:'var(--orange)', green:'va
 function save() { if (sb) return; try { localStorage.setItem('orcinus_v5', JSON.stringify(sightings)); } catch (e) {} }
 
 // ══ backend ═══════════════════════════════════════════
-let hasSourceCol = true;   // pasa a false si aún no se ejecutó la migración de la columna "source"
-const colsSel = () => 'id,created_at,lat,lng,type,count,notes,confirms' + (hasSourceCol ? ',source' : '');
+// Columnas añadidas por migraciones: si aún no existen en la base, la app sigue funcionando sin ellas
+const OPT_COLS = ['source', 'observed_at'];
+const missingCols = new Set();
+let canSendId = true;          // la migración 2 permite que el móvil elija el id (evita duplicados al reintentar)
+const colsSel = () => 'id,created_at,lat,lng,type,count,notes,confirms' + OPT_COLS.filter(c => !missingCols.has(c)).map(c => ',' + c).join('');
+function noteMissingCols(err) {
+  const msg = (err && err.message) || ''; let hit = false;
+  for (const c of OPT_COLS) if (!missingCols.has(c) && msg.includes(c)) { missingCols.add(c); hit = true; }
+  return hit;
+}
 function fromRow(r) {
   return { id:r.id, lat:r.lat, lng:r.lng, type:r.type, color:TYPE_COLOR[r.type] || 'green',
-           time:Date.parse(r.created_at), count:r.count, notes:r.notes || '', confirms:r.confirms, source:r.source || null };
+           time:Date.parse(r.observed_at || r.created_at), count:r.count, notes:r.notes || '', confirms:r.confirms, source:r.source || null };
 }
 function upsertLocal(s) {
   const i = sightings.findIndex(x => x.id === s.id);
   if (i >= 0) sightings[i] = s; else sightings.unshift(s);
 }
-function setOnline(ok) { document.querySelector('.header-pill').classList.toggle('offline', !ok); }
-async function ensureSession() {
-  const { data } = await sb.auth.getSession();
-  if (data.session) return true;
-  const { error } = await sb.auth.signInAnonymously();
-  if (error) { console.error(error); showToast(t('tConnectErr')); return false; }
-  return true;
+let online = navigator.onLine !== false;
+function setOnline(ok) { online = ok; document.querySelector('.header-pill').classList.toggle('offline', !ok); }
+// ¿Fallo de red (sin cobertura) o error de verdad?
+function isNetErr(err) {
+  if (!err) return false;
+  if (navigator.onLine === false) return true;
+  const m = String(err.message || err);
+  return (!err.code && /fetch|network|load failed|timed? ?out|aborted/i.test(m)) || err.status === 0 || /RetryableFetch/.test(err.name || '');
+}
+async function ensureSession() {           // → 'ok' | 'net' | 'err'
+  try {
+    const { data } = await sb.auth.getSession();
+    if (data.session) return 'ok';
+    const { error } = await sb.auth.signInAnonymously();
+    if (error) { console.error(error); return isNetErr(error) ? 'net' : 'err'; }
+    return 'ok';
+  } catch (e) { return isNetErr(e) ? 'net' : 'err'; }
 }
 async function fetchSightings() {
   const since = new Date(Date.now() - 74 * 3600000).toISOString();
-  let { data, error } = await sb.from('sightings').select(colsSel())
-    .gte('created_at', since).order('created_at', { ascending:false }).limit(1000);
-  if (error && hasSourceCol && /source/.test(error.message || '')) {
-    hasSourceCol = false;
-    ({ data, error } = await sb.from('sightings').select(colsSel())
-      .gte('created_at', since).order('created_at', { ascending:false }).limit(1000));
+  let data, error;
+  for (let i = 0; i < 3; i++) {
+    try {
+      ({ data, error } = await sb.from('sightings').select(colsSel())
+        .gte('created_at', since).order('created_at', { ascending:false }).limit(1000));
+    } catch (e) { error = e; }
+    if (!error || !noteMissingCols(error)) break;
   }
   if (error) { console.error(error); setOnline(false); return; }
   setOnline(true);
   sightings = data.map(fromRow);
-  renderMarkers();
+  saveSnapshot(); mergePending(); renderMarkers(); refreshPopup();
+}
+
+// ── copia local de lo último visto (para abrir la app sin cobertura) ──
+function saveSnapshot() {
+  try { localStorage.setItem('orcinus_cache', JSON.stringify(sightings.filter(s => !s.pending))); } catch (e) {}
+}
+function loadSnapshot() {
+  try { return JSON.parse(localStorage.getItem('orcinus_cache') || '[]'); } catch (e) { return []; }
+}
+
+// ── cola de avistamientos sin enviar ──
+function loadQueue() { try { return JSON.parse(localStorage.getItem('orcinus_queue') || '[]'); } catch (e) { return []; } }
+function saveQueue(q) { try { localStorage.setItem('orcinus_queue', JSON.stringify(q)); } catch (e) {} }
+let queue = loadQueue();
+function newId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
+}
+function pendingFromItem(it) {
+  const p = it.payload;
+  return { id:p.id, pending:true, lat:p.lat, lng:p.lng, type:p.type, color:TYPE_COLOR[p.type], time:Date.parse(p.observed_at),
+           count:p.count, notes:p.notes || '', confirms:0, source:p.source || null };
+}
+function mergePending() { queue.forEach(it => { if (!sightings.some(s => s.id === it.payload.id)) sightings.unshift(pendingFromItem(it)); }); }
+function enqueue(payload) {
+  queue.push({ payload, at:Date.now() }); saveQueue(queue);
+  mine.add(payload.id); saveSet('orcinus_mine', mine);
+  upsertLocal(pendingFromItem(queue[queue.length - 1]));
+}
+// Envía un avistamiento → { ok, row } | { net:true } | { err }
+async function sendPayload(payload) {
+  const ses = await ensureSession();
+  if (ses !== 'ok') return ses === 'net' ? { net:true } : { err:{ message:'session' } };
+  for (let i = 0; i < 4; i++) {
+    const body = { ...payload };
+    OPT_COLS.forEach(c => { if (missingCols.has(c)) delete body[c]; });
+    if (!canSendId) delete body.id;
+    let res;
+    try { res = await sb.from('sightings').insert(body).select(colsSel()).single(); }
+    catch (e) { return isNetErr(e) ? { net:true } : { err:e }; }
+    if (!res.error) return { ok:true, row:res.data };
+    const e = res.error;
+    if (isNetErr(e)) return { net:true };
+    if (e.code === '23505') return { ok:true, row:null };            // ya había llegado (reintento): no duplicar
+    if (noteMissingCols(e)) continue;                                 // migración pendiente: reintentar sin esa columna
+    if (canSendId && e.code === '42501') { canSendId = false; continue; }   // sin permiso para elegir id: reintentar sin él
+    return { err:e };
+  }
+  return { err:{ message:'retries' } };
+}
+let flushing = false;
+async function flushQueue() {
+  if (!sb || flushing || !queue.length || navigator.onLine === false) return;
+  flushing = true; let sent = 0;
+  try {
+    while (queue.length) {
+      const it = queue[0];
+      const r = await sendPayload(it.payload);
+      if (r.net) break;                                               // sigue sin red: reintentar más tarde
+      if (r.err && /rate_limit/.test(r.err.message || '')) break;     // límite por hora: reintentar más tarde
+      queue.shift(); saveQueue(queue);
+      if (r.ok) {
+        sent++;
+        if (r.row) { mine.add(r.row.id); saveSet('orcinus_mine', mine); upsertLocal(fromRow(r.row)); }
+        else { const s = sightings.find(x => x.id === it.payload.id); if (s) s.pending = false; }
+      } else {
+        console.error(r.err);
+        sightings = sightings.filter(x => x.id !== it.payload.id);
+        showToast(t('tQueueDropped'));
+      }
+    }
+  } finally { flushing = false; }
+  if (sent) { setOnline(true); renderMarkers(); refreshPopup(); showToast(t('tQueueSent')); fetchSightings(); }
+  else renderMarkers();
 }
 function subscribeRealtime() {
   sb.channel('sightings-live')
@@ -544,7 +670,7 @@ function makeIcon(s, op) {
   const c = TC[s.color];
   const badge = s.confirms > 0 ? `<div class="cbadge">${s.confirms}</div>` : '';
   return L.divIcon({ className:'', iconSize:[40, 40], iconAnchor:[20, 20],
-    html:`<div class="orca-pin" style="background:${c.bg};border-color:${c.bc};opacity:${op}">${ORCA}${badge}</div>` });
+    html:`<div class="orca-pin${s.pending ? ' pending' : ''}" style="background:${c.bg};border-color:${c.bc};opacity:${op}">${ORCA}${badge}</div>` });
 }
 function renderMarkers() {
   let active = 0;
@@ -561,7 +687,8 @@ function renderMarkers() {
     }
     if (op > 0.2) active++;
   });
-  document.getElementById('sightCount').textContent = t('active', { n:active });
+  document.getElementById('sightCount').innerHTML = esc(t('active', { n:active }))
+    + (queue.length ? ` <span class="queue-badge">· ⏳${queue.length}</span>` : '');
 }
 
 // ══ popup ═════════════════════════════════════════════
@@ -576,7 +703,7 @@ function showPopup(s) {
     <div class="popup-time">${esc(fmtT(s.time) + src)}</div>
     ${s.count > 1 ? `<div class="popup-count">${esc(t('individuals', { n:s.count }))}</div>` : ''}
     ${s.notes ? `<div class="popup-notes">${esc(s.notes)}</div>` : ''}
-    ${mine.has(s.id)
+    ${s.pending ? `<div class="popup-pending">${esc(t('pending'))}</div>` : mine.has(s.id)
       ? `<div class="confirm-row"><span class="popup-own">${esc(t('yours'))}</span><span class="confirm-count" style="margin-left:auto">${esc(t('confShort', { n:s.confirms }))}</span></div>`
       : `<div class="confirm-row">
            <button class="confirm-btn" onclick="doConfirm('${esc(s.id)}')" ${confirmed.has(s.id) ? 'disabled' : ''}>${esc(confirmed.has(s.id) ? t('confirmed') : t('confirm'))}</button>
@@ -597,12 +724,12 @@ window.closePopup = () => { popupEl.style.display = 'none'; openId = null; };
 function refreshPopup() { if (openId) { const s = sightings.find(x => x.id === openId); s ? showPopup(s) : closePopup(); } }
 
 window.doConfirm = async id => {
-  const s = sightings.find(x => x.id === id); if (!s || confirmed.has(id) || mine.has(id)) return;
+  const s = sightings.find(x => x.id === id); if (!s || s.pending || confirmed.has(id) || mine.has(id)) return;
   closePopup();
   if (sb) {
-    if (!(await ensureSession())) return;
+    if ((await ensureSession()) !== 'ok') { showToast(t('tConnectErr')); return; }
     const { error } = await sb.from('confirmations').insert({ sighting_id:id });
-    if (error && error.code !== '23505') { console.error(error); showToast(error.code === '42501' ? t('tCantConfirm') : t('tConfirmErr')); return; }
+    if (error && error.code !== '23505') { console.error(error); showToast(isNetErr(error) ? t('tConnectErr') : error.code === '42501' ? t('tCantConfirm') : t('tConfirmErr')); return; }
     if (error) { confirmed.add(id); saveSet('orcinus_confirmed', confirmed); showToast(t('tAlready')); return; }
   }
   s.confirms++; confirmed.add(id); saveSet('orcinus_confirmed', confirmed);
@@ -611,9 +738,9 @@ window.doConfirm = async id => {
 window.doReport = async (btn, id) => {
   if (!btn.classList.contains('armed')) { btn.classList.add('armed'); btn.textContent = t('reportSure'); return; }
   closePopup();
-  if (!(await ensureSession())) return;
+  if ((await ensureSession()) !== 'ok') { showToast(t('tConnectErr')); return; }
   const { error } = await sb.from('reports').insert({ sighting_id:id });
-  if (error && error.code !== '23505') { console.error(error); showToast(t('tReportErr')); return; }
+  if (error && error.code !== '23505') { console.error(error); showToast(isNetErr(error) ? t('tConnectErr') : t('tReportErr')); return; }
   reported.add(id); saveSet('orcinus_reported', reported);
   showToast(t('tReported'));
 };
@@ -695,11 +822,21 @@ if (navigator.permissions && navigator.geolocation) {
   }).catch(() => {});
 }
 
-// Ayuda para desbloquear la ubicación
+// Hoja de ayuda (ubicación bloqueada / instalar en iPhone)
 const helpBg = document.getElementById('helpBg');
+let helpKind = null;
 function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
-function renderHelpSteps() { document.getElementById('helpSteps').innerHTML = t(isIOS() ? 'helpIos' : 'helpOther').map(s => `<li>${esc(s)}</li>`).join(''); }
-function showGeoHelp() { renderHelpSteps(); helpBg.classList.add('open'); }
+function renderHelp() {
+  const k = helpKind === 'install'
+    ? { title:'iosTitle', intro:'iosIntro', steps:'iosSteps', after:'iosAfter' }
+    : { title:'helpTitle', intro:'helpIntro', steps:isIOS() ? 'helpIos' : 'helpOther', after:'helpAfter' };
+  document.getElementById('helpTitle').textContent = t(k.title);
+  document.getElementById('helpIntro').textContent = t(k.intro);
+  document.getElementById('helpAfter').textContent = t(k.after);
+  document.getElementById('helpSteps').innerHTML = t(k.steps).map(s => `<li>${esc(s)}</li>`).join('');
+}
+function showHelp(kind) { helpKind = kind; renderHelp(); helpBg.classList.add('open'); }
+function showGeoHelp() { showHelp('geo'); }
 document.getElementById('closeHelp').onclick = document.getElementById('okHelp').onclick = () => helpBg.classList.remove('open');
 helpBg.addEventListener('click', e => { if (e.target === helpBg) helpBg.classList.remove('open'); });
 
@@ -796,33 +933,32 @@ async function doSubmit() {
   if (!selType) { showToast(t('tPickType')); return; }
   if (!reportPos) { startPlacing(true); return; }    // sin GPS ni punto marcado: pedir que lo marque
   const payload = {
+    id:newId(), observed_at:new Date().toISOString(),          // hora real, aunque se envíe más tarde
     lat:+reportPos.lat.toFixed(5), lng:+reportPos.lng.toFixed(5), type:selType, count:cnt,
     notes:document.getElementById('notesInput').value.trim().slice(0, 200),
+    source:reportPos.source,
   };
-  if (hasSourceCol) payload.source = reportPos.source;
-  let s;
-  if (sb) {
-    submitBtn.disabled = true; submitBtn.textContent = t('sending');
-    let res = null;
-    if (await ensureSession()) {
-      res = await sb.from('sightings').insert(payload).select(colsSel()).single();
-      if (res.error && hasSourceCol && /source/.test(res.error.message || '')) {   // migración aún no aplicada
-        hasSourceCol = false; delete payload.source;
-        res = await sb.from('sightings').insert(payload).select(colsSel()).single();
-      }
-    }
-    submitBtn.disabled = false; submitBtn.textContent = t('submit');
-    if (!res) return;
-    if (res.error) { console.error(res.error); showToast(/rate_limit/.test(res.error.message) ? t('tRate') : t('tSendErr')); return; }
-    s = fromRow(res.data);
-  } else {
-    s = { id:'u' + Date.now(), ...payload, source:reportPos.source, color:TYPE_COLOR[selType], time:Date.now(), confirms:0 };
+  const finish = (s, msg) => {
+    closeForm(); resetForm(); renderMarkers();
+    map.setView([s.lat, s.lng], map.getZoom());
+    showToast(msg);
+  };
+  if (!sb) {                                                   // modo demo
+    const s = { ...payload, color:TYPE_COLOR[selType], time:Date.now(), confirms:0 };
+    mine.add(s.id); saveSet('orcinus_mine', mine); upsertLocal(s); save();
+    return finish(s, t('tAdded'));
   }
-  mine.add(s.id); saveSet('orcinus_mine', mine);
-  upsertLocal(s); save(); renderMarkers();
-  closeForm(); resetForm();
-  map.setView([s.lat, s.lng], map.getZoom());
-  showToast(t('tAdded'));
+  // Sin cobertura (o si se corta a medio envío): a la cola, se enviará solo al volver la señal
+  if (navigator.onLine === false) { enqueue(payload); return finish(payload, t('tQueued')); }
+  submitBtn.disabled = true; submitBtn.textContent = t('sending');
+  const r = await sendPayload(payload);
+  submitBtn.disabled = false; submitBtn.textContent = t('submit');
+  if (r.net) { setOnline(false); enqueue(payload); return finish(payload, t('tQueued')); }
+  if (r.err) { console.error(r.err); showToast(/rate_limit/.test(r.err.message || '') ? t('tRate') : t('tSendErr')); return; }
+  const s = r.row ? fromRow(r.row) : { ...payload, color:TYPE_COLOR[selType], time:Date.now(), confirms:0 };
+  mine.add(s.id); saveSet('orcinus_mine', mine); upsertLocal(s);
+  setOnline(true);
+  finish(s, t('tAdded'));
 }
 submitBtn.addEventListener('click', doSubmit);
 
@@ -857,7 +993,7 @@ function applyLang(code, persist) {
   if (submitBtn.disabled) submitBtn.textContent = t('sending');
   updateSliderLabel(); renderMarkers(); refreshPopup(); updateLocateCtl();
   if (modalBg.classList.contains('open')) updateLocLine();
-  if (helpBg.classList.contains('open')) renderHelpSteps();
+  if (helpBg.classList.contains('open')) renderHelp();
   if (placing) updatePlaceBar();
 }
 document.getElementById('langBtn').addEventListener('click', e => { e.stopPropagation(); langMenu.classList.toggle('open'); });
@@ -873,14 +1009,39 @@ function showToast(msg) {
   toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; }, 300); }, 2600);
 }
 
+// ══ instalar en el móvil ══════════════════════════════
+const installLink = document.getElementById('installLink');
+let installPrompt = null;
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; installLink.classList.add('show'); });
+window.addEventListener('appinstalled', () => { installPrompt = null; installLink.classList.remove('show'); });
+if (isIOS() && !isStandalone()) installLink.classList.add('show');      // iPhone no tiene aviso automático: explicarlo
+installLink.addEventListener('click', async () => {
+  if (installPrompt) {
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') installLink.classList.remove('show');
+    installPrompt = null;
+  } else showHelp('install');
+});
+
 // ══ arranque ══════════════════════════════════════════
+if (sb) { sightings = loadSnapshot(); mergePending(); }    // lo último conocido, por si no hay cobertura
 applyLang(lang, false);
 setInterval(() => { renderMarkers(); refreshPopup(); }, 60000);   // actualizar transparencias y "hace X min"
 if (sb) {
-  fetchSightings();
+  if (navigator.onLine === false) setOnline(false);
+  fetchSightings().then(flushQueue);
   subscribeRealtime();
   setInterval(fetchSightings, 120000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchSightings(); });
+  setInterval(flushQueue, 30000);
+  window.addEventListener('online',  () => { fetchSightings().then(flushQueue); });
+  window.addEventListener('offline', () => setOnline(false));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchSightings().then(flushQueue); });
+}
+// Service worker: permite abrir la app sin cobertura (no funciona abriendo el archivo directamente)
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW', e)));
 }
 </script>
 </body>
