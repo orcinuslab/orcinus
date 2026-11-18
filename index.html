@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d1f2d">
+<meta name="robots" content="noindex, nofollow"><!-- quitar al publicar -->
 <title>Orcinus</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -114,6 +115,41 @@ button{font-family:var(--font)}
 #popup{position:fixed;z-index:2000;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;min-width:200px;max-width:250px;box-shadow:var(--shadow);display:none}
 .popup-type{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;padding-right:18px}
 .popup-time{font-size:12px;color:var(--fg2);margin-bottom:8px;font-family:var(--mono)}
+.popup-nav{font-size:12px;color:var(--accent);margin:-4px 0 8px;font-family:var(--mono);font-weight:500}
+.proto-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:14px;border:1px solid var(--orange);background:var(--orange-dim);color:var(--fg);font-size:12px;font-weight:600;cursor:pointer}
+.proto-btn svg{width:14px;height:14px;color:var(--orange)}
+.proto-banner{display:none;align-items:center;gap:8px;width:100%;margin:-8px 0 16px;padding:10px 12px;border-radius:10px;border:1px solid var(--orange);background:var(--orange-dim);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;text-align:left}
+.proto-banner.show{display:flex}
+.proto-banner svg{width:18px;height:18px;flex-shrink:0;color:var(--orange)}
+.proto-banner span{flex:1}
+.proto-intro{font-size:13px;line-height:1.45;color:var(--fg3);margin:-8px 0 14px}
+.proto-h{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin:14px 0 6px}
+.proto-list{padding-left:20px;margin:0}
+.proto-list li{font-size:14px;line-height:1.5;color:var(--fg);margin-bottom:6px}
+.proto-sos{margin:16px 0 10px;padding:12px;border-radius:12px;background:var(--red-dim);border:1px solid var(--red);font-size:14px;line-height:1.6;color:var(--fg)}
+.proto-sos strong{display:block;color:var(--red);font-size:12px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:2px}
+.proto-sos a{color:var(--fg);font-weight:700;white-space:nowrap}
+.proto-note{font-size:12px;line-height:1.5;color:var(--fg3);margin-bottom:10px}
+.proto-src{display:block;font-size:13px;color:var(--accent);margin-bottom:16px}
+.panel-chips{display:flex;gap:8px;margin:-6px 0 14px;flex-wrap:wrap}
+.panel-chips>button{white-space:nowrap}
+.hist-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:14px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-size:12px;font-weight:600;cursor:pointer}
+.hist-btn svg{width:14px;height:14px;color:var(--accent)}
+.hist-sub{font-size:13px;color:var(--fg3);margin:-10px 0 12px;font-family:var(--mono)}
+.hist-list{list-style:none;margin:0 0 12px;padding:0}
+.hist-item{display:flex;gap:10px;align-items:flex-start;width:100%;padding:11px 4px;border:none;border-bottom:1px solid var(--border);background:none;color:var(--fg);text-align:left;cursor:pointer;font-family:var(--font)}
+.hist-item:hover{background:var(--surface2)}
+.hist-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.hist-main{flex:1;min-width:0}
+.hist-top{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:600}
+.hist-date{font-family:var(--mono);font-size:12px;color:var(--fg2);font-weight:500;white-space:nowrap}
+.hist-meta{font-size:12px;color:var(--fg3);margin-top:2px}
+.hist-notes{font-size:13px;color:var(--fg2);margin-top:3px;overflow-wrap:anywhere}
+.hist-status{font-size:12px;margin-top:3px;font-weight:600;color:var(--fg3)}
+.hist-status.on{color:var(--accent)}
+.hist-status.pend{color:var(--orange)}
+.hist-empty{font-size:14px;color:var(--fg2);padding:18px 0;text-align:center}
+.hist-note{font-size:12px;color:var(--fg3);margin-bottom:14px}
 .popup-notes{font-size:13px;color:var(--fg2);margin-bottom:8px;overflow-wrap:anywhere}
 .popup-count{font-size:12px;color:var(--fg3);margin-bottom:10px}
 .confirm-row{display:flex;align-items:center;gap:8px}
@@ -259,6 +295,10 @@ body.placing #placeBar{display:block}
       <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span data-i18n="observation"></span></div>
       <div class="legend-item" style="opacity:.5"><div class="legend-dot" style="background:#888"></div><span data-i18n="older"></span></div>
     </div>
+    <div class="panel-chips">
+      <button class="hist-btn" id="histBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg><span data-i18n="myHistory"></span></button>
+      <button class="proto-btn" id="protoBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/></svg><span data-i18n="protoBtn"></span></button>
+    </div>
     <div class="install-card" id="installCard">
       <div class="install-icon" id="installIcon"></div>
       <div class="install-text"><strong data-i18n="installTitle"></strong><span data-i18n="installSub"></span></div>
@@ -308,6 +348,7 @@ body.placing #placeBar{display:block}
       <button class="type-btn" data-type="interaction" data-color="orange"><span class="type-dot" style="background:var(--orange)"></span><span data-i18n="interaction"></span></button>
       <button class="type-btn" data-type="contact" data-color="red"><span class="type-dot" style="background:var(--red)"></span><span data-i18n="contact"></span></button>
     </div>
+    <button class="proto-banner" id="protoBanner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/></svg><span data-i18n="protoBanner"></span>›</button>
     <div class="field-label" data-i18n="countLabel"></div>
     <div class="count-row">
       <button class="count-btn" id="countMinus">−</button>
@@ -335,6 +376,27 @@ body.placing #placeBar{display:block}
     <ol class="help-steps" id="helpSteps"></ol>
     <p class="help-after" id="helpAfter"></p>
     <button class="primary-btn" id="okHelp" data-i18n="gotIt"></button>
+  </div>
+</div>
+
+<!-- qué hacer si te encuentras orcas -->
+<div class="sheet-bg" id="protoBg">
+  <div class="sheet">
+    <div class="modal-title"><span class="modal-orca" style="color:var(--orange)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/></svg></span><span data-i18n="protoTitle"></span><button class="modal-close" id="closeProto" data-i18n-title="close">✕</button></div>
+    <p class="proto-intro" data-i18n="protoIntro"></p>
+    <div id="protoBody"></div>
+    <button class="primary-btn" id="okProto" data-i18n="gotIt"></button>
+  </div>
+</div>
+
+<!-- mi historial -->
+<div class="sheet-bg" id="histBg">
+  <div class="sheet">
+    <div class="modal-title"><span class="modal-orca" id="histOrca"></span><span data-i18n="myHistory"></span><button class="modal-close" id="closeHist" data-i18n-title="close">✕</button></div>
+    <div class="hist-sub" id="histSub"></div>
+    <ul class="hist-list" id="histList"></ul>
+    <p class="hist-note" data-i18n="histNote"></p>
+    <button class="primary-btn" id="okHist" data-i18n="gotIt"></button>
   </div>
 </div>
 
@@ -367,7 +429,7 @@ const sb = (SUPABASE_URL && SUPABASE_KEY && window.supabase)
 const LANGS = { es:'Español', en:'English', pt:'Português', fr:'Français' };
 const I18N = {
   es: {
-    active:'{n} activos', history:'Historial', now:'Ahora',
+    active:'{n} activos', active1:'{n} activo', history:'Historial', now:'Ahora',
     contact:'Contacto', interaction:'Interacción', observation:'Observación', older:'Antiguo',
     reportBtn:'Reportar avistamiento', mapCredit:'Mapa', language:'Idioma', theme:'Cambiar tema claro/oscuro', close:'Cerrar',
     newSighting:'Nuevo avistamiento', typeLabel:'Tipo de interacción', countLabel:'Número de individuos',
@@ -401,11 +463,13 @@ const I18N = {
     iosSteps:['Toca el botón Compartir (el cuadrado con una flecha hacia arriba).', 'Elige «Añadir a pantalla de inicio».', 'Pulsa «Añadir». Orcinus aparecerá como una app más.'],
     iosAfter:'Si no ves la opción, abre esta página en Safari.',
     installTitle:'Instala Orcinus', installSub:'Ábrela como una app y úsala sin cobertura en el mar', installGo:'Instalar',
+    protoBtn:"Qué hacer si hay orcas", protoBanner:"¿Interacción en curso? Mira qué hacer", protoTitle:"Si te encuentras orcas", protoIntro:"Resumen de las recomendaciones oficiales del Gobierno de España (Ministerio para la Transición Ecológica y Marina Mercante, 2026).", protoBefore:"Antes de salir", protoBeforeL:["Evita las zonas de riesgo que marca el Ministerio: golfo de Cádiz y Estrecho de abril a agosto; Galicia de julio a octubre.", "Navega tan cerca de la costa como lo permita la seguridad."], protoDuring:"Durante una interacción", protoDuringL:["No detengas el barco. Navega hacia la costa, a aguas menos profundas, tanto a motor como a vela.", "Mantén a la tripulación lejos de las bordas, en las zonas más protegidas.", "No uses nada que pueda herir, molestar o estresar a las orcas."], protoAfter:"Después", protoAfterL:["Avisa al Centro de Coordinación de Salvamento más próximo por VHF (canal 16 o canal de trabajo).", "Si es seguro, envía fotos de las orcas a orcas@sasemar.es para ayudar a identificarlas.", "Repórtalo en Orcinus para avisar a otros navegantes."], protoSos:"Emergencia", protoNote:"Otros países, como Portugal, pueden recomendar maniobras distintas: sigue las indicaciones del país donde navegues.", protoSrc:"Ver las recomendaciones completas (MITECO)", protoSalv:"Salvamento Marítimo", navInfo:"a {d} millas · demora {b}° V",
+    myHistory:"Mi historial", histEmpty:"Aún no has enviado ningún avistamiento desde este dispositivo.", histNote:"Solo se guarda en este dispositivo. Se borra con «Borrar mis datos».", histOnMap:"En el mapa · {n} conf.", histArchived:"Ya no se muestra en el mapa", histSent:"{n} enviados",
     panelToggle:"Ocultar o mostrar el panel", noThanks:'No, gracias', braveHint:'Si no aparece entre tus apps, instálala desde Chrome',
     privacy:"Privacidad", terms:"Términos de uso", deleteData:"Borrar mis datos", formLegal:"Al enviar aceptas los {terms} y la {privacy}. Orcinus es informativa: no sustituye a las indicaciones oficiales ni a tu criterio como patrón.", termsLink:"Términos de uso", privacyLink:"Política de privacidad", delTitle:"Borrar mis datos", delText:"Se borrarán de forma definitiva los avistamientos que has enviado desde este dispositivo en los últimos 30 días, tus confirmaciones y reportes, y tu identificador anónimo. También los avistamientos pendientes de envío.", delText2:"Los avistamientos de hace más de 30 días ya no están vinculados a ti, así que siguen como datos anónimos. No se puede deshacer.", delConfirm:"Borrar", cancel:"Cancelar", deleting:"Borrando…", tDeleted:"Tus datos se han borrado", tDeleteErr:"No se pudieron borrar. Inténtalo de nuevo", tDeleteOffline:"Necesitas conexión para borrar tus datos",
   },
   en: {
-    active:'{n} active', history:'History', now:'Now',
+    active:'{n} active', active1:'{n} active', history:'History', now:'Now',
     contact:'Contact', interaction:'Interaction', observation:'Observation', older:'Older',
     reportBtn:'Report a sighting', mapCredit:'Map', language:'Language', theme:'Switch light/dark theme', close:'Close',
     newSighting:'New sighting', typeLabel:'Type of encounter', countLabel:'Number of orcas',
@@ -439,11 +503,13 @@ const I18N = {
     iosSteps:['Tap the Share button (the square with an arrow pointing up).', 'Choose "Add to Home Screen".', 'Tap "Add". Orcinus will appear like any other app.'],
     iosAfter:"If you don't see the option, open this page in Safari.",
     installTitle:'Install Orcinus', installSub:'Open it like an app and use it with no signal at sea', installGo:'Install',
+    protoBtn:"What to do if orcas appear", protoBanner:"Interaction happening now? See what to do", protoTitle:"If you encounter orcas", protoIntro:"Summary of the official recommendations from the Spanish government (Ministry for the Ecological Transition and Merchant Navy, 2026).", protoBefore:"Before setting off", protoBeforeL:["Avoid the risk zones marked by the Ministry: Gulf of Cádiz and Strait of Gibraltar from April to August; Galicia from July to October.", "Sail as close to the coast as safety allows."], protoDuring:"During an interaction", protoDuringL:["Don't stop the boat. Head towards the coast, into shallower water, whether under motor or sail.", "Keep the crew away from the sides, in the most protected spots.", "Don't use anything that could harm, disturb or stress the orcas."], protoAfter:"Afterwards", protoAfterL:["Report it to the nearest Maritime Rescue Coordination Centre on VHF (channel 16 or the working channel).", "If it is safe, send photos of the orcas to orcas@sasemar.es to help identify them.", "Report it in Orcinus to warn other sailors."], protoSos:"Emergency", protoNote:"Other countries, such as Portugal, may recommend different manoeuvres: follow the guidance of the country where you are sailing.", protoSrc:"Full recommendations (MITECO, in Spanish)", protoSalv:"Spanish Maritime Rescue", navInfo:"{d} nm away · bearing {b}° T",
+    myHistory:"My history", histEmpty:"You haven't sent any sightings from this device yet.", histNote:"Only stored on this device. Removed with \"Delete my data\".", histOnMap:"On the map · {n} conf.", histArchived:"No longer shown on the map", histSent:"{n} sent",
     panelToggle:"Hide or show the panel", noThanks:'No thanks', braveHint:"If it doesn't show up in your apps, install it from Chrome",
     privacy:"Privacy", terms:"Terms of use", deleteData:"Delete my data", formLegal:"By submitting you accept the {terms} and the {privacy}. Orcinus is for information only: it does not replace official guidance or your own judgement as skipper.", termsLink:"Terms of use", privacyLink:"Privacy policy", delTitle:"Delete my data", delText:"This permanently deletes the sightings you sent from this device in the last 30 days, your confirmations and reports, and your anonymous identifier. Sightings waiting to be sent are deleted too.", delText2:"Sightings older than 30 days are no longer linked to you, so they remain as anonymous data. This cannot be undone.", delConfirm:"Delete", cancel:"Cancel", deleting:"Deleting…", tDeleted:"Your data has been deleted", tDeleteErr:"Couldn't delete it. Please try again", tDeleteOffline:"You need a connection to delete your data",
   },
   pt: {
-    active:'{n} ativos', history:'Histórico', now:'Agora',
+    active:'{n} ativos', active1:'{n} ativo', history:'Histórico', now:'Agora',
     contact:'Contacto', interaction:'Interação', observation:'Observação', older:'Antigo',
     reportBtn:'Reportar avistamento', mapCredit:'Mapa', language:'Idioma', theme:'Mudar tema claro/escuro', close:'Fechar',
     newSighting:'Novo avistamento', typeLabel:'Tipo de interação', countLabel:'Número de indivíduos',
@@ -477,11 +543,13 @@ const I18N = {
     iosSteps:['Toque no botão Partilhar (o quadrado com uma seta para cima).', 'Escolha «Adicionar ao ecrã principal».', 'Toque em «Adicionar». O Orcinus aparece como qualquer outra app.'],
     iosAfter:'Se não vir a opção, abra esta página no Safari.',
     installTitle:'Instale o Orcinus', installSub:'Abra-o como uma app e use-o sem rede no mar', installGo:'Instalar',
+    protoBtn:"O que fazer se houver orcas", protoBanner:"Interação a decorrer? Veja o que fazer", protoTitle:"Se encontrar orcas", protoIntro:"Resumo das recomendações oficiais do Governo espanhol (Ministério para a Transição Ecológica e Marinha Mercante, 2026).", protoBefore:"Antes de sair", protoBeforeL:["Evite as zonas de risco assinaladas pelo Ministério espanhol: golfo de Cádis e estreito de Gibraltar de abril a agosto; Galiza de julho a outubro.", "Navegue tão perto da costa quanto a segurança o permitir."], protoDuring:"Durante uma interação", protoDuringL:["Não pare o barco. Navegue em direção à costa, para águas menos profundas, tanto a motor como à vela.", "Mantenha a tripulação afastada das bordas, nas zonas mais protegidas.", "Não use nada que possa ferir, perturbar ou causar stress às orcas."], protoAfter:"Depois", protoAfterL:["Comunique ao Centro de Coordenação de Salvamento mais próximo por VHF (canal 16 ou canal de trabalho).", "Se for seguro, envie fotografias das orcas para orcas@sasemar.es para ajudar a identificá-las.", "Reporte no Orcinus para avisar outros navegadores."], protoSos:"Emergência", protoNote:"Em Portugal, as autoridades podem recomendar manobras diferentes: siga as indicações do país onde navega.", protoSrc:"Recomendações completas (MITECO, em espanhol)", protoSalv:"Salvamento Marítimo (Espanha)", navInfo:"a {d} milhas · azimute {b}° V",
+    myHistory:"O meu histórico", histEmpty:"Ainda não enviou nenhum avistamento a partir deste dispositivo.", histNote:"Fica guardado apenas neste dispositivo. É apagado com «Apagar os meus dados».", histOnMap:"No mapa · {n} conf.", histArchived:"Já não aparece no mapa", histSent:"{n} enviados",
     panelToggle:"Ocultar ou mostrar o painel", noThanks:'Não, obrigado', braveHint:'Se não aparecer nas suas apps, instale-o a partir do Chrome',
     privacy:"Privacidade", terms:"Termos de utilização", deleteData:"Apagar os meus dados", formLegal:"Ao enviar aceita os {terms} e a {privacy}. O Orcinus é informativo: não substitui as indicações oficiais nem o seu critério como skipper.", termsLink:"Termos de utilização", privacyLink:"Política de privacidade", delTitle:"Apagar os meus dados", delText:"Serão apagados de forma definitiva os avistamentos que enviou deste dispositivo nos últimos 30 dias, as suas confirmações e denúncias e o seu identificador anónimo. Também os avistamentos por enviar.", delText2:"Os avistamentos com mais de 30 dias já não estão associados a si, pelo que ficam como dados anónimos. Não é possível anular.", delConfirm:"Apagar", cancel:"Cancelar", deleting:"A apagar…", tDeleted:"Os seus dados foram apagados", tDeleteErr:"Não foi possível apagar. Tente novamente", tDeleteOffline:"Precisa de rede para apagar os seus dados",
   },
   fr: {
-    active:'{n} actives', history:'Historique', now:'Maintenant',
+    active:'{n} actives', active1:'{n} active', history:'Historique', now:'Maintenant',
     contact:'Contact', interaction:'Interaction', observation:'Observation', older:'Ancien',
     reportBtn:'Signaler une observation', mapCredit:'Carte', language:'Langue', theme:'Changer de thème clair/sombre', close:'Fermer',
     newSighting:'Nouvelle observation', typeLabel:'Type de rencontre', countLabel:"Nombre d'orques",
@@ -515,6 +583,8 @@ const I18N = {
     iosSteps:['Touchez le bouton Partager (le carré avec une flèche vers le haut).', "Choisissez « Sur l'écran d'accueil ».", 'Touchez « Ajouter ». Orcinus apparaîtra comme une app.'],
     iosAfter:"Si l'option n'apparaît pas, ouvrez cette page dans Safari.",
     installTitle:'Installez Orcinus', installSub:'Ouvrez-la comme une app et utilisez-la sans réseau en mer', installGo:'Installer',
+    protoBtn:"Que faire face aux orques", protoBanner:"Interaction en cours ? Voir quoi faire", protoTitle:"Si vous rencontrez des orques", protoIntro:"Résumé des recommandations officielles du gouvernement espagnol (ministère de la Transition écologique et Marine marchande, 2026).", protoBefore:"Avant de partir", protoBeforeL:["Évitez les zones à risque signalées par le ministère espagnol : golfe de Cadix et détroit de Gibraltar d'avril à août ; Galice de juillet à octobre.", "Naviguez aussi près de la côte que la sécurité le permet."], protoDuring:"Pendant une interaction", protoDuringL:["N'arrêtez pas le bateau. Dirigez-vous vers la côte, vers des eaux moins profondes, au moteur comme à la voile.", "Éloignez l'équipage des bords, dans les endroits les plus protégés.", "N'utilisez rien qui puisse blesser, déranger ou stresser les orques."], protoAfter:"Ensuite", protoAfterL:["Signalez-le au centre de coordination de sauvetage le plus proche par VHF (canal 16 ou canal de travail).", "Si c'est sans danger, envoyez des photos des orques à orcas@sasemar.es pour aider à les identifier.", "Signalez-le dans Orcinus pour prévenir les autres navigateurs."], protoSos:"Urgence", protoNote:"D'autres pays, comme le Portugal ou la France, peuvent recommander des manœuvres différentes : suivez les consignes du pays où vous naviguez.", protoSrc:"Recommandations complètes (MITECO, en espagnol)", protoSalv:"Sauvetage maritime espagnol", navInfo:"à {d} milles · relèvement {b}° V",
+    myHistory:"Mon historique", histEmpty:"Vous n'avez encore envoyé aucune observation depuis cet appareil.", histNote:"Enregistré uniquement sur cet appareil. Supprimé avec « Supprimer mes données ».", histOnMap:"Sur la carte · {n} conf.", histArchived:"N'apparaît plus sur la carte", histSent:"{n} envoyées",
     panelToggle:"Masquer ou afficher le panneau", noThanks:'Non merci', braveHint:"Si elle n'apparaît pas dans vos apps, installez-la depuis Chrome",
     privacy:"Confidentialité", terms:"Conditions d'utilisation", deleteData:"Supprimer mes données", formLegal:"En envoyant, vous acceptez les {terms} et la {privacy}. Orcinus est informatif : il ne remplace ni les consignes officielles ni votre jugement de chef de bord.", termsLink:"Conditions d'utilisation", privacyLink:"Politique de confidentialité", delTitle:"Supprimer mes données", delText:"Seront supprimés définitivement les observations envoyées depuis cet appareil au cours des 30 derniers jours, vos confirmations et signalements, ainsi que votre identifiant anonyme. Les observations en attente d'envoi aussi.", delText2:"Les observations de plus de 30 jours ne sont plus liées à vous : elles restent comme données anonymes. Action irréversible.", delConfirm:"Supprimer", cancel:"Annuler", deleting:"Suppression…", tDeleted:"Vos données ont été supprimées", tDeleteErr:"Échec de la suppression. Réessayez", tDeleteOffline:"Une connexion est nécessaire pour supprimer vos données",
   },
@@ -593,6 +663,16 @@ function fmtT(ts) {
 function fmtDist(meters) {
   const nf = new Intl.NumberFormat(lang, { maximumFractionDigits: meters < 10000 ? 1 : 0 });
   return meters < 1000 ? Math.round(meters / 10) * 10 + ' m' : nf.format(meters / 1000) + ' km';
+}
+function navInfo(s) {
+  const R = 3440.065;                                   // radio de la Tierra en millas náuticas
+  const toR = d => d * Math.PI / 180, f1 = toR(userLat), f2 = toR(s.lat), dl = toR(s.lng - userLng);
+  const a = Math.sin((f2 - f1) / 2) ** 2 + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) ** 2;
+  const nm = 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+  const y = Math.sin(dl) * Math.cos(f2), x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl);
+  const brg = Math.round((Math.atan2(y, x) * 180 / Math.PI + 360) % 360) % 360;
+  const d = new Intl.NumberFormat(lang, nm < 10 ? { minimumFractionDigits:1, maximumFractionDigits:1 } : { maximumFractionDigits:0 }).format(nm);
+  return t('navInfo', { d, b: String(brg).padStart(3, '0') });
 }
 function typeL(type) { return { contact:t('contactFull'), interaction:t('interaction'), observation:t('observation') }[type] || type; }
 function typeC(c) { return { red:'var(--red)', orange:'var(--orange)', green:'var(--green)' }[c]; }
@@ -673,7 +753,22 @@ function pendingFromItem(it) {
            count:p.count, notes:p.notes || '', confirms:0, source:p.source || null };
 }
 function mergePending() { queue.forEach(it => { if (!sightings.some(s => s.id === it.payload.id)) sightings.unshift(pendingFromItem(it)); }); }
+// ── mi historial (solo en este dispositivo) ──
+function loadHistory() { try { return JSON.parse(localStorage.getItem('orcinus_history') || '[]'); } catch (e) { return []; } }
+let histItems = loadHistory();
+function recordHistory(x) {
+  if (histItems.some(h => h.id === x.id)) return;
+  histItems.unshift({ id:x.id, type:x.type, count:x.count, notes:x.notes || '', lat:x.lat, lng:x.lng, source:x.source || null,
+                    time:x.time || Date.parse(x.observed_at) || Date.now() });
+  histItems = histItems.slice(0, 300);
+  try { localStorage.setItem('orcinus_history', JSON.stringify(histItems)); } catch (e) {}
+}
+function forgetHistory(id) {
+  histItems = histItems.filter(h => h.id !== id);
+  try { localStorage.setItem('orcinus_history', JSON.stringify(histItems)); } catch (e) {}
+}
 function enqueue(payload) {
+  recordHistory(payload);
   queue.push({ payload, at:Date.now() }); saveQueue(queue);
   mine.add(payload.id); saveSet('orcinus_mine', mine);
   upsertLocal(pendingFromItem(queue[queue.length - 1]));
@@ -717,6 +812,7 @@ async function flushQueue() {
       } else {
         console.error(r.err);
         sightings = sightings.filter(x => x.id !== it.payload.id);
+        forgetHistory(it.payload.id);
         showToast(t('tQueueDropped'));
       }
     }
@@ -758,7 +854,7 @@ function renderMarkers() {
     }
     if (op > 0.2) active++;
   });
-  document.getElementById('sightCount').innerHTML = esc(t('active', { n:active }))
+  document.getElementById('sightCount').innerHTML = esc(t(active === 1 ? 'active1' : 'active', { n:active }))
     + (queue.length ? ` <span class="queue-badge">· ⏳${queue.length}</span>` : '');
 }
 
@@ -772,6 +868,7 @@ function showPopup(s) {
   popupContent.innerHTML = `
     <div class="popup-type" style="color:${typeC(s.color)}">${esc(typeL(s.type))}</div>
     <div class="popup-time">${esc(fmtT(s.time) + src)}</div>
+    ${hasFix ? `<div class="popup-nav">${esc(navInfo(s))}</div>` : ''}
     ${s.count > 1 ? `<div class="popup-count">${esc(t('individuals', { n:s.count }))}</div>` : ''}
     ${s.notes ? `<div class="popup-notes">${esc(s.notes)}</div>` : ''}
     ${s.pending ? `<div class="popup-pending">${esc(t('pending'))}</div>` : mine.has(s.id)
@@ -928,6 +1025,7 @@ function openForm() {
 }
 function closeForm() { modalBg.classList.remove('open'); }
 function resetForm() {
+  protoBanner.classList.remove('show');
   selType = null; cnt = 1; reportPos = null; submitAfterPlace = false;
   document.querySelectorAll('.type-btn').forEach(b => b.className = 'type-btn');
   countVal.textContent = '1';
@@ -949,7 +1047,7 @@ function updateLocLine() {
   row.classList.toggle('warn', !reportPos);
   txt.innerHTML = esc(main) + (sub ? `<small>${esc(sub)}</small>` : '');
 }
-geoListeners.push(() => { if (modalBg.classList.contains('open')) updateLocLine(); if (placing) updatePlaceBar(); });
+geoListeners.push(() => { if (modalBg.classList.contains('open')) updateLocLine(); if (placing) updatePlaceBar(); refreshPopup(); });
 
 document.getElementById('reportBtn').addEventListener('click', openForm);
 document.getElementById('fab').addEventListener('click', openForm);
@@ -1006,7 +1104,25 @@ modalBg.addEventListener('click', e => { if (e.target === modalBg) closeForm(); 
 document.querySelectorAll('.type-btn').forEach(btn => btn.addEventListener('click', () => {
   document.querySelectorAll('.type-btn').forEach(b => b.className = 'type-btn');
   selType = btn.dataset.type; btn.classList.add('active-' + btn.dataset.color);
+  protoBanner.classList.toggle('show', selType !== 'observation');   // interacción o contacto: ofrecer qué hacer
 }));
+
+// ── qué hacer si te encuentras orcas ──
+const protoBg = document.getElementById('protoBg');
+const protoBanner = document.getElementById('protoBanner');
+const MITECO_URL = 'https://www.miteco.gob.es/es/biodiversidad/temas/biodiversidad-marina/habitats-especies-marinos/especies-marinas/bm_hayem_em_orcas.html';
+function renderProto() {
+  const sec = (h, list) => `<div class="proto-h">${esc(t(h))}</div><ul class="proto-list">${t(list).map(x => `<li>${esc(x).replace('orcas@sasemar.es', '<a href="mailto:orcas@sasemar.es">orcas@sasemar.es</a>')}</li>`).join('')}</ul>`;
+  document.getElementById('protoBody').innerHTML =
+    sec('protoDuring', 'protoDuringL') + sec('protoAfter', 'protoAfterL') + sec('protoBefore', 'protoBeforeL') +
+    `<div class="proto-sos"><strong>${esc(t('protoSos'))}</strong><a href="tel:112">112</a> · VHF 16 · ${esc(t('protoSalv'))} <a href="tel:+34900202202">+34 900 202 202</a></div>` +
+    `<p class="proto-note">${esc(t('protoNote'))}</p><a class="proto-src" href="${MITECO_URL}" target="_blank" rel="noopener">${esc(t('protoSrc'))} ↗</a>`;
+}
+function openProto() { renderProto(); protoBg.classList.add('open'); }
+document.getElementById('protoBtn').addEventListener('click', openProto);
+protoBanner.addEventListener('click', openProto);
+document.getElementById('closeProto').onclick = document.getElementById('okProto').onclick = () => protoBg.classList.remove('open');
+protoBg.addEventListener('click', e => { if (e.target === protoBg) protoBg.classList.remove('open'); });
 document.getElementById('countMinus').addEventListener('click', () => { if (cnt > 1) countVal.textContent = --cnt; });
 document.getElementById('countPlus').addEventListener('click',  () => { if (cnt < 50) countVal.textContent = ++cnt; });
 document.getElementById('locAdjust').addEventListener('click', () => startPlacing(false));
@@ -1065,7 +1181,7 @@ async function doSubmit() {
   };
   if (!sb) {                                                   // modo demo
     const s = { ...payload, color:TYPE_COLOR[selType], time:Date.now(), confirms:0 };
-    mine.add(s.id); saveSet('orcinus_mine', mine); upsertLocal(s); save();
+    mine.add(s.id); saveSet('orcinus_mine', mine); upsertLocal(s); save(); recordHistory(s);
     return finish(s, t('tAdded'));
   }
   // Sin cobertura (o si se corta a medio envío): a la cola, se enviará solo al volver la señal
@@ -1076,7 +1192,7 @@ async function doSubmit() {
   if (r.net) { setOnline(false); enqueue(payload); return finish(payload, t('tQueued')); }
   if (r.err) { console.error(r.err); showToast(/rate_limit/.test(r.err.message || '') ? t('tRate') : t('tSendErr')); return; }
   const s = r.row ? fromRow(r.row) : { ...payload, color:TYPE_COLOR[selType], time:Date.now(), confirms:0 };
-  mine.add(s.id); saveSet('orcinus_mine', mine); upsertLocal(s);
+  mine.add(s.id); saveSet('orcinus_mine', mine); upsertLocal(s); recordHistory(s);
   setOnline(true);
   finish(s, t('tAdded'));
 }
@@ -1115,6 +1231,8 @@ function applyLang(code, persist) {
   updateSliderLabel(); renderMarkers(); refreshPopup(); updateLocateCtl();
   if (modalBg.classList.contains('open')) updateLocLine();
   if (helpBg.classList.contains('open')) renderHelp();
+  if (protoBg.classList.contains('open')) renderProto();
+  if (histBg.classList.contains('open')) renderHistory();
   if (placing) updatePlaceBar();
 }
 document.getElementById('langBtn').addEventListener('click', e => { e.stopPropagation(); langMenu.classList.toggle('open'); });
@@ -1126,11 +1244,46 @@ let toastTimer = null;
 function showToast(msg) {
   const el = document.getElementById('toast');
   const bar = document.body.classList.contains('placing') ? document.getElementById('placeBar') : document.getElementById('panel');
-  el.style.bottom = Math.max(16, window.innerHeight - bar.getBoundingClientRect().top + 16) + 'px';   // justo encima de lo visible del panel
+  if (document.querySelector('.sheet-bg.open')) el.style.bottom = (window.innerHeight - 140) + 'px';   // con una hoja abierta, arriba para no taparla
+  else el.style.bottom = Math.max(16, window.innerHeight - bar.getBoundingClientRect().top + 16) + 'px';   // justo encima de lo visible del panel
   el.textContent = msg; el.style.display = 'block'; el.style.opacity = '1';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; }, 300); }, 2600);
 }
+
+// ══ mi historial ══════════════════════════════════════
+const histBg = document.getElementById('histBg');
+document.getElementById('histOrca').innerHTML = ORCA;
+function renderHistory() {
+  // Avistamientos propios que ya estaban en el mapa antes de existir el historial
+  sightings.forEach(s => { if (mine.has(s.id) && !s.pending) recordHistory(s); });
+  const df = new Intl.DateTimeFormat(lang, { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  document.getElementById('histSub').textContent = histItems.length ? t('histSent', { n:histItems.length }) : '';
+  document.getElementById('histList').innerHTML = !histItems.length ? `<li class="hist-empty">${esc(t('histEmpty'))}</li>` : histItems.map(h => {
+    const live = sightings.find(s => s.id === h.id);
+    const pend = queue.some(q => q.payload.id === h.id);
+    const status = pend ? `<div class="hist-status pend">${esc(t('pending'))}</div>`
+      : live ? `<div class="hist-status on">${esc(t('histOnMap', { n:live.confirms }))}</div>`
+      : `<div class="hist-status">${esc(t('histArchived'))}</div>`;
+    const src = h.source === 'manual' ? t('srcManual') : h.source === 'gps' ? t('srcGps') : '';
+    const meta = [h.count > 1 ? t('individuals', { n:h.count }) : '', src, `${h.lat.toFixed(4)}, ${h.lng.toFixed(4)}`].filter(Boolean).join(' · ');
+    return `<li><button class="hist-item" data-id="${esc(h.id)}">
+      <span class="hist-dot" style="background:${typeC(TYPE_COLOR[h.type])}"></span>
+      <span class="hist-main"><span class="hist-top"><span>${esc(typeL(h.type))}</span><span class="hist-date">${esc(df.format(h.time))}</span></span>
+      <div class="hist-meta">${esc(meta)}</div>${h.notes ? `<div class="hist-notes">${esc(h.notes)}</div>` : ''}${status}</span></button></li>`;
+  }).join('');
+}
+document.getElementById('histBtn').addEventListener('click', () => { closePopup(); renderHistory(); histBg.classList.add('open'); });
+document.getElementById('closeHist').onclick = document.getElementById('okHist').onclick = () => histBg.classList.remove('open');
+histBg.addEventListener('click', e => { if (e.target === histBg) histBg.classList.remove('open'); });
+document.getElementById('histList').addEventListener('click', e => {
+  const b = e.target.closest('.hist-item'); if (!b) return;
+  const h = histItems.find(x => x.id === b.dataset.id); if (!h) return;
+  histBg.classList.remove('open');
+  map.setView([h.lat, h.lng], Math.max(map.getZoom(), 12));
+  const live = sightings.find(s => s.id === h.id);
+  if (live) map.once('moveend', () => showPopup(live));
+});
 
 // ══ legal y borrar mis datos ══════════════════════════
 function renderFormLegal() {
@@ -1146,9 +1299,9 @@ document.getElementById('deleteLink').addEventListener('click', () => { closePop
 document.getElementById('closeDel').onclick = document.getElementById('cancelDel').onclick = closeDelSheet;
 delBg.addEventListener('click', e => { if (e.target === delBg) closeDelSheet(); });
 function wipeLocalData() {
-  ['orcinus_mine', 'orcinus_confirmed', 'orcinus_reported', 'orcinus_queue', 'orcinus_v5'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  ['orcinus_mine', 'orcinus_confirmed', 'orcinus_reported', 'orcinus_queue', 'orcinus_v5', 'orcinus_history'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   mine.clear(); confirmed.clear(); reported.clear();
-  queue = []; sightings = sightings.filter(s => !s.pending);
+  queue = []; histItems = []; sightings = sightings.filter(s => !s.pending);
 }
 confirmDel.addEventListener('click', async () => {
   if (sb) {
