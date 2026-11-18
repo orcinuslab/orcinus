@@ -21,11 +21,11 @@
   document.documentElement.setAttribute('data-theme', t);
 })();
 </script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Librerías y fuentes alojadas aquí: la web no conecta con terceros salvo el mapa (OSM) y Supabase -->
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="vendor/fonts.css">
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/supabase.js"></script>
 <style>
 /* ── temas ─────────────────────────────────────────── */
 :root, :root[data-theme="dark"] {
@@ -69,8 +69,8 @@ button{font-family:var(--font)}
   pointer-events:none;
 }
 #header>*{pointer-events:auto}
-.app-logo{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.app-logo svg{width:28px;height:28px;fill:var(--on-accent)}
+.app-logo{width:36px;height:36px;background:linear-gradient(160deg,#1d4460 0%,#0d1f2d 62%,#081520 100%);border:1px solid rgba(255,255,255,.14);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.app-logo svg{width:26px;height:26px;fill:#fff}
 .app-name{font-size:18px;font-weight:600;letter-spacing:-.3px;flex:1;min-width:0}
 .app-name span{color:var(--accent)}
 .header-pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 10px;font-size:12px;color:var(--fg2);font-family:var(--mono);display:flex;align-items:center;gap:6px;white-space:nowrap}
@@ -128,7 +128,19 @@ button{font-family:var(--font)}
 
 /* ── panel inferior ────────────────────────────────── */
 #panel{position:absolute;bottom:0;left:0;right:0;z-index:1000;background:var(--surface);border-top:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:16px 16px calc(14px + env(safe-area-inset-bottom,0px))}
-.panel-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.panel-handle{width:40px;height:5px;background:var(--fg3);opacity:.6;border-radius:3px;margin:0 auto}
+#panel{transition:transform .28s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.panel-grab{margin:-16px -16px 10px;padding:12px 0 10px;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;border-radius:var(--radius) var(--radius) 0 0}
+.panel-grab:active{cursor:grabbing}
+.panel-grab:focus-visible{outline:2px solid var(--accent);outline-offset:-4px}
+#fab{position:absolute;right:16px;bottom:calc(46px + env(safe-area-inset-bottom,0px));z-index:1001;width:56px;height:56px;border-radius:50%;border:none;background:var(--accent);color:var(--on-accent);box-shadow:var(--shadow);display:none;align-items:center;justify-content:center;cursor:pointer}
+#fab svg{width:24px;height:24px}
+body.panel-collapsed #fab{display:flex}
+body.placing #fab{display:none}
+#osmMini{position:absolute;left:8px;bottom:calc(34px + env(safe-area-inset-bottom,0px));z-index:999;font-size:10px;padding:2px 6px;border-radius:6px;background:var(--surface);color:var(--fg3);opacity:.85;display:none}
+#osmMini a{color:var(--fg2);text-decoration:none}
+body.panel-collapsed #osmMini{display:block}
+body.placing #osmMini{display:none}
 .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .slider-label{font-size:11px;color:var(--fg3);font-family:var(--mono);white-space:nowrap;min-width:56px}
 #timeRange{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:var(--surface2);border-radius:2px;outline:none}
@@ -154,6 +166,16 @@ button{font-family:var(--font)}
 .install-text span{display:block;font-size:12px;color:var(--fg2)}
 .install-go{padding:9px 14px;border-radius:10px;border:none;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
 .install-x{background:none;border:none;color:var(--fg3);font-size:16px;cursor:pointer;padding:4px;margin-left:-4px;align-self:flex-start}
+.credits-legal{margin-top:2px}
+.credits-legal a,.credit-btn{color:var(--fg3);text-decoration:underline;font-size:10px}
+.credit-btn{background:none;border:none;padding:0;cursor:pointer;font-family:var(--font)}
+.form-legal{margin-top:10px;font-size:11px;line-height:1.45;color:var(--fg3);text-align:center}
+.form-legal a{color:var(--fg2)}
+.sheet-text{font-size:14px;line-height:1.5;color:var(--fg2);margin-bottom:12px}
+.sheet-actions{display:flex;gap:8px;margin-top:6px}
+.sheet-actions>*{flex:1}
+.danger-btn{padding:12px 14px;border-radius:12px;background:var(--red);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.danger-btn[disabled]{opacity:.6}
 #installLink{display:none;background:none;border:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;padding:0 6px 0 0}
 #installLink.show{display:inline}
 .queue-badge{color:var(--orange);font-weight:600}
@@ -225,7 +247,7 @@ body.placing #placeBar{display:block}
   <div id="map"></div>
 
   <div id="panel">
-    <div class="panel-handle"></div>
+    <div class="panel-grab" id="panelGrab" role="button" tabindex="0" aria-expanded="true" data-i18n-title="panelToggle"><div class="panel-handle"></div></div>
     <div class="slider-row">
       <span class="slider-label" data-i18n="history"></span>
       <input type="range" id="timeRange" min="1" max="72" value="72" step="1">
@@ -250,8 +272,16 @@ body.placing #placeBar{display:block}
     <div class="credits">
       <button id="installLink" data-i18n="install"></button>
       <span data-i18n="mapCredit"></span> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+      <div class="credits-legal">
+        <a href="legal.html#privacy" data-i18n="privacy"></a> · <a href="legal.html#terms" data-i18n="terms"></a> · <button class="credit-btn" id="deleteLink" data-i18n="deleteData"></button>
+      </div>
     </div>
   </div>
+
+  <div id="osmMini">&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+  <button id="fab" data-i18n-title="reportBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
 
   <div id="placeBar">
     <p data-i18n="placeHint"></p>
@@ -293,6 +323,7 @@ body.placing #placeBar{display:block}
     <div class="field-label" data-i18n="notesLabel"></div>
     <textarea class="notes-input" id="notesInput" rows="2" maxlength="200" data-i18n-ph="notesPh"></textarea>
     <button class="primary-btn" id="submitBtn" data-i18n="submit"></button>
+    <p class="form-legal" id="formLegal"></p>
   </div>
 </div>
 
@@ -304,6 +335,19 @@ body.placing #placeBar{display:block}
     <ol class="help-steps" id="helpSteps"></ol>
     <p class="help-after" id="helpAfter"></p>
     <button class="primary-btn" id="okHelp" data-i18n="gotIt"></button>
+  </div>
+</div>
+
+<!-- borrar mis datos -->
+<div class="sheet-bg" id="delBg">
+  <div class="sheet">
+    <div class="modal-title"><span data-i18n="delTitle"></span><button class="modal-close" id="closeDel" data-i18n-title="close">✕</button></div>
+    <p class="sheet-text" data-i18n="delText"></p>
+    <p class="sheet-text" data-i18n="delText2"></p>
+    <div class="sheet-actions">
+      <button class="secondary-btn" id="cancelDel" data-i18n="cancel"></button>
+      <button class="danger-btn" id="confirmDel" data-i18n="delConfirm"></button>
+    </div>
   </div>
 </div>
 
@@ -357,7 +401,8 @@ const I18N = {
     iosSteps:['Toca el botón Compartir (el cuadrado con una flecha hacia arriba).', 'Elige «Añadir a pantalla de inicio».', 'Pulsa «Añadir». Orcinus aparecerá como una app más.'],
     iosAfter:'Si no ves la opción, abre esta página en Safari.',
     installTitle:'Instala Orcinus', installSub:'Ábrela como una app y úsala sin cobertura en el mar', installGo:'Instalar',
-    noThanks:'No, gracias', braveHint:'Si no aparece entre tus apps, instálala desde Chrome',
+    panelToggle:"Ocultar o mostrar el panel", noThanks:'No, gracias', braveHint:'Si no aparece entre tus apps, instálala desde Chrome',
+    privacy:"Privacidad", terms:"Términos de uso", deleteData:"Borrar mis datos", formLegal:"Al enviar aceptas los {terms} y la {privacy}. Orcinus es informativa: no sustituye a las indicaciones oficiales ni a tu criterio como patrón.", termsLink:"Términos de uso", privacyLink:"Política de privacidad", delTitle:"Borrar mis datos", delText:"Se borrarán de forma definitiva los avistamientos que has enviado desde este dispositivo en los últimos 30 días, tus confirmaciones y reportes, y tu identificador anónimo. También los avistamientos pendientes de envío.", delText2:"Los avistamientos de hace más de 30 días ya no están vinculados a ti, así que siguen como datos anónimos. No se puede deshacer.", delConfirm:"Borrar", cancel:"Cancelar", deleting:"Borrando…", tDeleted:"Tus datos se han borrado", tDeleteErr:"No se pudieron borrar. Inténtalo de nuevo", tDeleteOffline:"Necesitas conexión para borrar tus datos",
   },
   en: {
     active:'{n} active', history:'History', now:'Now',
@@ -394,7 +439,8 @@ const I18N = {
     iosSteps:['Tap the Share button (the square with an arrow pointing up).', 'Choose "Add to Home Screen".', 'Tap "Add". Orcinus will appear like any other app.'],
     iosAfter:"If you don't see the option, open this page in Safari.",
     installTitle:'Install Orcinus', installSub:'Open it like an app and use it with no signal at sea', installGo:'Install',
-    noThanks:'No thanks', braveHint:"If it doesn't show up in your apps, install it from Chrome",
+    panelToggle:"Hide or show the panel", noThanks:'No thanks', braveHint:"If it doesn't show up in your apps, install it from Chrome",
+    privacy:"Privacy", terms:"Terms of use", deleteData:"Delete my data", formLegal:"By submitting you accept the {terms} and the {privacy}. Orcinus is for information only: it does not replace official guidance or your own judgement as skipper.", termsLink:"Terms of use", privacyLink:"Privacy policy", delTitle:"Delete my data", delText:"This permanently deletes the sightings you sent from this device in the last 30 days, your confirmations and reports, and your anonymous identifier. Sightings waiting to be sent are deleted too.", delText2:"Sightings older than 30 days are no longer linked to you, so they remain as anonymous data. This cannot be undone.", delConfirm:"Delete", cancel:"Cancel", deleting:"Deleting…", tDeleted:"Your data has been deleted", tDeleteErr:"Couldn't delete it. Please try again", tDeleteOffline:"You need a connection to delete your data",
   },
   pt: {
     active:'{n} ativos', history:'Histórico', now:'Agora',
@@ -431,7 +477,8 @@ const I18N = {
     iosSteps:['Toque no botão Partilhar (o quadrado com uma seta para cima).', 'Escolha «Adicionar ao ecrã principal».', 'Toque em «Adicionar». O Orcinus aparece como qualquer outra app.'],
     iosAfter:'Se não vir a opção, abra esta página no Safari.',
     installTitle:'Instale o Orcinus', installSub:'Abra-o como uma app e use-o sem rede no mar', installGo:'Instalar',
-    noThanks:'Não, obrigado', braveHint:'Se não aparecer nas suas apps, instale-o a partir do Chrome',
+    panelToggle:"Ocultar ou mostrar o painel", noThanks:'Não, obrigado', braveHint:'Se não aparecer nas suas apps, instale-o a partir do Chrome',
+    privacy:"Privacidade", terms:"Termos de utilização", deleteData:"Apagar os meus dados", formLegal:"Ao enviar aceita os {terms} e a {privacy}. O Orcinus é informativo: não substitui as indicações oficiais nem o seu critério como skipper.", termsLink:"Termos de utilização", privacyLink:"Política de privacidade", delTitle:"Apagar os meus dados", delText:"Serão apagados de forma definitiva os avistamentos que enviou deste dispositivo nos últimos 30 dias, as suas confirmações e denúncias e o seu identificador anónimo. Também os avistamentos por enviar.", delText2:"Os avistamentos com mais de 30 dias já não estão associados a si, pelo que ficam como dados anónimos. Não é possível anular.", delConfirm:"Apagar", cancel:"Cancelar", deleting:"A apagar…", tDeleted:"Os seus dados foram apagados", tDeleteErr:"Não foi possível apagar. Tente novamente", tDeleteOffline:"Precisa de rede para apagar os seus dados",
   },
   fr: {
     active:'{n} actives', history:'Historique', now:'Maintenant',
@@ -468,7 +515,8 @@ const I18N = {
     iosSteps:['Touchez le bouton Partager (le carré avec une flèche vers le haut).', "Choisissez « Sur l'écran d'accueil ».", 'Touchez « Ajouter ». Orcinus apparaîtra comme une app.'],
     iosAfter:"Si l'option n'apparaît pas, ouvrez cette page dans Safari.",
     installTitle:'Installez Orcinus', installSub:'Ouvrez-la comme une app et utilisez-la sans réseau en mer', installGo:'Installer',
-    noThanks:'Non merci', braveHint:"Si elle n'apparaît pas dans vos apps, installez-la depuis Chrome",
+    panelToggle:"Masquer ou afficher le panneau", noThanks:'Non merci', braveHint:"Si elle n'apparaît pas dans vos apps, installez-la depuis Chrome",
+    privacy:"Confidentialité", terms:"Conditions d'utilisation", deleteData:"Supprimer mes données", formLegal:"En envoyant, vous acceptez les {terms} et la {privacy}. Orcinus est informatif : il ne remplace ni les consignes officielles ni votre jugement de chef de bord.", termsLink:"Conditions d'utilisation", privacyLink:"Politique de confidentialité", delTitle:"Supprimer mes données", delText:"Seront supprimés définitivement les observations envoyées depuis cet appareil au cours des 30 derniers jours, vos confirmations et signalements, ainsi que votre identifiant anonyme. Les observations en attente d'envoi aussi.", delText2:"Les observations de plus de 30 jours ne sont plus liées à vous : elles restent comme données anonymes. Action irréversible.", delConfirm:"Supprimer", cancel:"Annuler", deleting:"Suppression…", tDeleted:"Vos données ont été supprimées", tDeleteErr:"Échec de la suppression. Réessayez", tDeleteOffline:"Une connexion est nécessaire pour supprimer vos données",
   },
 };
 
@@ -525,7 +573,7 @@ const ICON_SUN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
 const ICON_LOCATE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>';
 
-document.getElementById('appLogo').innerHTML = ORCA;
+document.getElementById('appLogo').innerHTML = ORCA.replace('viewBox="0 0 90 90"', 'viewBox="11.21 12.74 67.99 67.99"');   // orca ajustada a su contorno, como en el icono
 document.getElementById('modalOrca').innerHTML = ORCA;
 
 function esc(str) { return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -904,6 +952,55 @@ function updateLocLine() {
 geoListeners.push(() => { if (modalBg.classList.contains('open')) updateLocLine(); if (placing) updatePlaceBar(); });
 
 document.getElementById('reportBtn').addEventListener('click', openForm);
+document.getElementById('fab').addEventListener('click', openForm);
+
+// ── panel inferior: deslizar hacia abajo para ver solo el mapa, hacia arriba para recuperarlo ──
+const panel = document.getElementById('panel');
+const panelGrab = document.getElementById('panelGrab');
+let panelCollapsed = false;
+try { panelCollapsed = localStorage.getItem('orcinus_panel') === 'collapsed'; } catch (e) {}
+function collapsedOffset() {
+  const safe = Math.max(0, parseFloat(getComputedStyle(panel).paddingBottom) - 14);   // zona de la barra de inicio del móvil
+  return Math.max(0, panel.offsetHeight - panelGrab.offsetHeight - safe);
+}
+function setPanelCollapsed(v, persist) {
+  panelCollapsed = v;
+  panel.style.transform = v ? `translateY(${collapsedOffset()}px)` : '';
+  document.body.classList.toggle('panel-collapsed', v);
+  panelGrab.setAttribute('aria-expanded', String(!v));
+  if (v) closePopup();
+  if (persist) { try { localStorage.setItem('orcinus_panel', v ? 'collapsed' : 'open'); } catch (e) {} }
+}
+let drag = null;
+panelGrab.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  panelGrab.setPointerCapture(e.pointerId);
+  drag = { y0:e.clientY, t0:performance.now(), base:panelCollapsed ? collapsedOffset() : 0, max:collapsedOffset(), y:null, last:e.clientY, lastT:performance.now(), v:0 };
+  panel.style.transition = 'none';
+});
+panelGrab.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const now = performance.now();
+  drag.v = (e.clientY - drag.last) / Math.max(1, now - drag.lastT);   // px/ms
+  drag.last = e.clientY; drag.lastT = now;
+  drag.y = Math.min(drag.max, Math.max(0, drag.base + e.clientY - drag.y0));
+  panel.style.transform = `translateY(${drag.y}px)`;
+});
+function endDrag(e) {
+  if (!drag) return;
+  const d = drag; drag = null;
+  panel.style.transition = '';
+  const moved = Math.abs(e.clientY - d.y0);
+  if (moved < 6) { setPanelCollapsed(!panelCollapsed, true); return; }            // un toque: alternar
+  const collapse = d.v > 0.4 ? true : d.v < -0.4 ? false : (d.y ?? d.base) > d.max / 2;
+  setPanelCollapsed(collapse, true);
+}
+panelGrab.addEventListener('pointerup', endDrag);
+panelGrab.addEventListener('pointercancel', endDrag);
+panelGrab.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPanelCollapsed(!panelCollapsed, true); } });
+// Si cambia la altura del panel (tarjeta de instalar, idioma, giro de pantalla) estando recogido
+if (window.ResizeObserver) new ResizeObserver(() => { if (panelCollapsed && !drag) panel.style.transform = `translateY(${collapsedOffset()}px)`; }).observe(panel);
+if (panelCollapsed) { panel.style.transition = 'none'; setPanelCollapsed(true, false); requestAnimationFrame(() => { panel.style.transition = ''; }); }
 document.getElementById('closeModal').addEventListener('click', closeForm);
 modalBg.addEventListener('click', e => { if (e.target === modalBg) closeForm(); });
 document.querySelectorAll('.type-btn').forEach(btn => btn.addEventListener('click', () => {
@@ -1014,6 +1111,7 @@ function applyLang(code, persist) {
   langMenu.innerHTML = Object.entries(LANGS).map(([c, name]) =>
     `<button data-lang="${c}" class="${c === lang ? 'current' : ''}">${name}<span>${c.toUpperCase()}</span></button>`).join('');
   if (submitBtn.disabled) submitBtn.textContent = t('sending');
+  renderFormLegal();
   updateSliderLabel(); renderMarkers(); refreshPopup(); updateLocateCtl();
   if (modalBg.classList.contains('open')) updateLocLine();
   if (helpBg.classList.contains('open')) renderHelp();
@@ -1028,11 +1126,51 @@ let toastTimer = null;
 function showToast(msg) {
   const el = document.getElementById('toast');
   const bar = document.body.classList.contains('placing') ? document.getElementById('placeBar') : document.getElementById('panel');
-  el.style.bottom = (bar.offsetHeight + 16) + 'px';           // siempre justo encima del panel, mida lo que mida
+  el.style.bottom = Math.max(16, window.innerHeight - bar.getBoundingClientRect().top + 16) + 'px';   // justo encima de lo visible del panel
   el.textContent = msg; el.style.display = 'block'; el.style.opacity = '1';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; }, 300); }, 2600);
 }
+
+// ══ legal y borrar mis datos ══════════════════════════
+function renderFormLegal() {
+  const link = (href, key) => `<a href="${href}">${esc(t(key))}</a>`;
+  document.getElementById('formLegal').innerHTML = esc(t('formLegal'))
+    .replace('{terms}', link('legal.html#terms', 'termsLink'))
+    .replace('{privacy}', link('legal.html#privacy', 'privacyLink'));
+}
+const delBg = document.getElementById('delBg');
+const confirmDel = document.getElementById('confirmDel');
+const closeDelSheet = () => delBg.classList.remove('open');
+document.getElementById('deleteLink').addEventListener('click', () => { closePopup(); delBg.classList.add('open'); });
+document.getElementById('closeDel').onclick = document.getElementById('cancelDel').onclick = closeDelSheet;
+delBg.addEventListener('click', e => { if (e.target === delBg) closeDelSheet(); });
+function wipeLocalData() {
+  ['orcinus_mine', 'orcinus_confirmed', 'orcinus_reported', 'orcinus_queue', 'orcinus_v5'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  mine.clear(); confirmed.clear(); reported.clear();
+  queue = []; sightings = sightings.filter(s => !s.pending);
+}
+confirmDel.addEventListener('click', async () => {
+  if (sb) {
+    if (navigator.onLine === false) { showToast(t('tDeleteOffline')); return; }
+    confirmDel.disabled = true; confirmDel.textContent = t('deleting');
+    let ok = true;
+    try {
+      const { data } = await sb.auth.getSession();
+      if (data.session) {                                  // sin sesión no hay nada guardado en el servidor
+        const { error } = await sb.rpc('delete_my_data');
+        if (error) { console.error(error); ok = false; }
+        else await sb.auth.signOut({ scope:'local' }).catch(() => {});
+      }
+    } catch (e) { console.error(e); ok = false; }
+    confirmDel.disabled = false; confirmDel.textContent = t('delConfirm');
+    if (!ok) { showToast(t('tDeleteErr')); return; }
+    wipeLocalData(); closeDelSheet(); closePopup(); renderMarkers(); fetchSightings();
+  } else {
+    wipeLocalData(); sightings = SAMPLE.slice(); closeDelSheet(); renderMarkers();
+  }
+  showToast(t('tDeleted'));
+});
 
 // ══ instalar en el móvil ══════════════════════════════
 // Tarjeta visible en el panel + enlace pequeño junto a los créditos.

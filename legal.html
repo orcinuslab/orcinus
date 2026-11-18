@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1f2d">
+<title>Orcinus · Privacidad y términos</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="stylesheet" href="vendor/fonts.css">
+<script>
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('orcinus_theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') t = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+:root, :root[data-theme="dark"] {
+  --bg:#0d1f2d; --surface:#132333; --border:rgba(255,255,255,0.10);
+  --fg:#e8f0f7; --fg2:rgba(232,240,247,.72); --fg3:rgba(232,240,247,.45);
+  --accent:#3db8a0; --on-accent:#0d1f2d; --warn:#e09430; color-scheme:dark;
+}
+:root[data-theme="light"] {
+  --bg:#f3f6f8; --surface:#ffffff; --border:rgba(8,28,42,.18);
+  --fg:#081c2a; --fg2:rgba(8,28,42,.82); --fg3:rgba(8,28,42,.6);
+  --accent:#0a7563; --on-accent:#ffffff; --warn:#b35900; color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'DM Sans',system-ui,sans-serif;line-height:1.6;font-size:15px}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.top-in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.back{display:flex;align-items:center;gap:8px;color:var(--fg);text-decoration:none;font-weight:600;font-size:16px;margin-right:auto}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(160deg,#1d4460 0%,#0d1f2d 62%,#081520 100%);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center}
+.logo svg{width:22px;height:22px;fill:#fff}
+.langs{display:flex;gap:4px}
+.langs button{background:var(--surface);border:1px solid var(--border);color:var(--fg2);border-radius:14px;padding:3px 9px;font:600 12px 'DM Mono',monospace;cursor:pointer}
+.langs button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.tabs{max-width:760px;margin:0 auto;display:flex;gap:6px;margin-top:10px}
+.tabs a{flex:1;text-align:center;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--fg2);text-decoration:none;font-weight:600;font-size:14px}
+.tabs a.on{border-color:var(--accent);color:var(--accent)}
+main{max-width:760px;margin:0 auto;padding:20px 16px calc(48px + env(safe-area-inset-bottom,0px))}
+h1{font-size:24px;line-height:1.25;margin:8px 0 4px;letter-spacing:-.3px}
+.updated{color:var(--fg3);font-size:13px;margin-bottom:18px;font-family:'DM Mono',monospace}
+h2{font-size:17px;margin:26px 0 8px}
+p,li{color:var(--fg2)}
+p{margin-bottom:10px}
+ul{padding-left:20px;margin-bottom:10px}
+li{margin-bottom:6px}
+strong{color:var(--fg)}
+a{color:var(--accent)}
+.box{border:1px solid var(--accent);background:var(--surface);border-radius:12px;padding:12px 14px;margin:12px 0}
+.box p:last-child{margin-bottom:0}
+table{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:8px 6px;border-bottom:1px solid var(--border);color:var(--fg2)}
+th{color:var(--fg);font-weight:600}
+.pending{color:var(--warn);font-weight:700}
+section{scroll-margin-top:120px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="top-in">
+    <a class="back" href="./" id="back"><span class="logo" id="logo"></span><span id="backTxt"></span></a>
+    <div class="langs" id="langs"></div>
+  </div>
+  <nav class="tabs"><a href="#privacy" id="tabPriv"></a><a href="#terms" id="tabTerms"></a></nav>
+</div>
+<main>
+  <section id="privacy"></section>
+  <section id="terms"></section>
+</main>
+
+<script>
+// ═══ Datos del responsable: rellenar antes de publicar ═══════════
+const OWNER   = '';      // nombre de la persona responsable
+const EMAIL   = '';      // email del proyecto
+const UPDATED = '2026-11-18';
+// ══════════════════════════════════════════════════════════════════
+
+const MITECO = 'https://www.miteco.gob.es/es/biodiversidad/temas/biodiversidad-marina/habitats-especies-marinos/especies-marinas/bm_hayem_em_orcas.html';
+const LANGS = ['es', 'en', 'pt', 'fr'];
+
+const UI = {
+  es:{ back:'Volver a Orcinus', priv:'Privacidad', terms:'Términos de uso', updated:'Última actualización', pending:'[pendiente]' },
+  en:{ back:'Back to Orcinus', priv:'Privacy', terms:'Terms of use', updated:'Last updated', pending:'[pending]' },
+  pt:{ back:'Voltar ao Orcinus', priv:'Privacidade', terms:'Termos de utilização', updated:'Última atualização', pending:'[pendente]' },
+  fr:{ back:'Retour à Orcinus', priv:'Confidentialité', terms:"Conditions d'utilisation", updated:'Dernière mise à jour', pending:'[à compléter]' },
+};
+
+// Marcadores que se sustituyen al mostrar: {OWNER} {EMAIL} {MITECO}
+const DOCS = {
+// ─────────────────────────────── ESPAÑOL ───────────────────────────────
+es: {
+privacy: `
+<h1>Política de privacidad</h1>
+<div class="box"><p><strong>En resumen:</strong> Orcinus no te pide nombre, email ni teléfono. Los avistamientos que envías se ven en el mapa durante 4 días y, pasados 30 días, dejan de estar vinculados a tu dispositivo. Puedes borrar tus datos en cualquier momento desde la app con «Borrar mis datos». No hay publicidad, ni analítica, ni venta de datos.</p></div>
+
+<h2>1. Responsable</h2>
+<p>Orcinus es un proyecto personal sin ánimo de lucro. Responsable del tratamiento: {OWNER}. Contacto: {EMAIL}.</p>
+
+<h2>2. Qué datos tratamos</h2>
+<ul>
+<li><strong>Los avistamientos que envías:</strong> posición, fecha y hora, tipo (observación, interacción o contacto), número de orcas, notas y si la posición viene del GPS o la marcaste en el mapa. Son públicos en el mapa durante 4 días. No escribas en las notas datos personales tuyos ni de otras personas (nombres, matrículas, teléfonos).</li>
+<li><strong>Un identificador anónimo:</strong> la primera vez que envías, confirmas o reportas, se crea en tu dispositivo una cuenta anónima, sin nombre, email ni teléfono. Sirve para que no puedas confirmar tus propios avistamientos, evitar duplicados y aplicar límites contra el abuso. Nunca se muestra a otros usuarios.</li>
+<li><strong>El vínculo</strong> entre ese identificador y tus avistamientos, confirmaciones y reportes. Es privado y se borra automáticamente a los 30 días.</li>
+<li><strong>La ubicación de tu dispositivo,</strong> solo si das permiso y solo con la app abierta. Se usa en tu propio dispositivo para mostrar tu posición y proponer el punto del avistamiento. Solo se envía como posición del avistamiento cuando tú lo envías.</li>
+<li><strong>Datos técnicos:</strong> como en cualquier web, tu dirección IP y los datos de tu navegador llegan a los servidores que sirven la app y el mapa (ver apartado 5). Orcinus no los usa para identificarte ni para seguirte.</li>
+<li><strong>En tu dispositivo</strong> se guardan tus preferencias (idioma y tema), la sesión anónima, la lista de lo que has enviado o confirmado, una copia de los últimos avistamientos y los envíos pendientes. Son necesarios para que la app funcione, también sin cobertura. No hay cookies de publicidad ni de analítica.</li>
+</ul>
+
+<h2>3. Para qué y con qué base legal</h2>
+<ul>
+<li><strong>Prestar el servicio</strong> (mostrar el mapa y recibir tus avistamientos): ejecución de los términos de uso que aceptas al enviar (art. 6.1.b del RGPD).</li>
+<li><strong>Seguridad y prevención del abuso</strong> (límites de envíos, reportes, moderación): interés legítimo (art. 6.1.f del RGPD).</li>
+<li><strong>Histórico de avistamientos:</strong> una vez desvinculados de tu dispositivo, los avistamientos son datos anónimos. Se conservan para estadísticas y para el estudio de las interacciones con orcas, y pueden compartirse con investigadores o administraciones.</li>
+</ul>
+<p>No vendemos datos personales, no mostramos publicidad y no elaboramos perfiles.</p>
+
+<h2>4. Cuánto tiempo</h2>
+<table>
+<tr><th>Dato</th><th>Plazo</th></tr>
+<tr><td>Avistamiento visible en el mapa</td><td>4 días</td></tr>
+<tr><td>Vínculo entre tu dispositivo y tus avistamientos, confirmaciones y reportes</td><td>30 días; después el avistamiento queda anónimo</td></tr>
+<tr><td>Avistamiento anónimo</td><td>Sin plazo, como histórico</td></tr>
+<tr><td>Identificador anónimo</td><td>Mientras uses la app o hasta que pulses «Borrar mis datos»</td></tr>
+<tr><td>Datos guardados en tu dispositivo</td><td>Hasta que pulses «Borrar mis datos», borres los datos del navegador o desinstales la app</td></tr>
+</table>
+
+<h2>5. Quién más interviene</h2>
+<ul>
+<li><strong>Supabase</strong>: base de datos y cuentas anónimas, con servidores en la Unión Europea. Guarda registros técnicos de seguridad, que incluyen direcciones IP, durante un tiempo limitado.</li>
+<li><strong>GitHub</strong> (Microsoft): aloja la web y puede registrar tu IP. Es una empresa de EE. UU. adherida al Marco de Privacidad de Datos UE-EE. UU.</li>
+<li><strong>OpenStreetMap Foundation</strong>: tu navegador descarga de sus servidores las imágenes del mapa, así que reciben tu IP. Tiene su propia <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">política de privacidad</a>.</li>
+<li>Autoridades, solo si la ley lo exige.</li>
+</ul>
+<p>Las librerías y las fuentes de la app están alojadas en la propia web, para no enviar tu IP a otros servicios.</p>
+
+<h2>6. Tus derechos</h2>
+<p>Tienes derecho de acceso, rectificación, supresión, oposición, limitación y portabilidad. Lo más rápido para borrar tus datos es «Borrar mis datos», en la parte inferior de la app. Para cualquier otra petición, escribe a {EMAIL}.</p>
+<p>Como no te pedimos ningún dato que te identifique, puede que no sepamos qué datos son tuyos (art. 11 del RGPD). Si nos indicas el avistamiento concreto (fecha, hora y lugar aproximados), intentaremos ayudarte.</p>
+<p>Si crees que no tratamos bien tus datos, puedes reclamar ante la Agencia Española de Protección de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener">aepd.es</a>).</p>
+
+<h2>7. Menores</h2>
+<p>Orcinus está pensada para mayores de 14 años.</p>
+
+<h2>8. Seguridad</h2>
+<p>Todas las conexiones van cifradas (HTTPS). Las reglas de la base de datos impiden que ningún usuario vea quién envió cada avistamiento, ni edite o borre datos de otros.</p>
+
+<h2>9. Cambios</h2>
+<p>Si cambiamos esta política, publicaremos aquí la nueva versión con su fecha. Si el cambio es importante, avisaremos en la app.</p>`,
+
+terms: `
+<h1>Términos de uso</h1>
+<div class="box"><p><strong>Importante:</strong> Orcinus es solo informativa. Los avistamientos los aportan otros usuarios, nadie los verifica y pueden estar equivocados o desfasados. <strong>No es un sistema de seguridad ni una ayuda a la navegación.</strong> Las decisiones a bordo son responsabilidad del patrón.</p></div>
+
+<h2>1. Qué es Orcinus</h2>
+<p>Orcinus es un mapa colaborativo y gratuito en el que los navegantes comparten avistamientos e interacciones con orcas. Al usarla aceptas estos términos.</p>
+
+<h2>2. Solo información, no seguridad</h2>
+<ul>
+<li>Los avistamientos no se verifican y pueden ser erróneos, incompletos o llegar tarde. Las orcas se mueven: un avistamiento de hace una hora puede no servir ya.</li>
+<li>Que no haya avistamientos en una zona <strong>no significa que no haya orcas</strong>.</li>
+<li>Sigue siempre las <a href="{MITECO}" target="_blank" rel="noopener">recomendaciones oficiales para navegantes</a> y las indicaciones de las autoridades marítimas.</li>
+<li>En una emergencia, llama al <strong>112</strong> o usa el <strong>canal 16 de VHF</strong>. En España, Salvamento Marítimo: <strong>900 202 202</strong>.</li>
+</ul>
+
+<h2>3. Normas de uso</h2>
+<ul>
+<li>Reporta solo lo que hayas visto y con la mayor exactitud posible. No envíes reportes falsos, de prueba ni repetidos.</li>
+<li>No escribas en las notas insultos, publicidad ni datos personales de nadie (nombres, matrículas, teléfonos).</li>
+<li><strong>No te acerques ni persigas a las orcas para reportarlas.</strong> Son una especie protegida: la población ibérica está catalogada como vulnerable y está prohibido molestarlas.</li>
+<li>No uses la app si te distrae del gobierno del barco. Reporta cuando sea seguro hacerlo.</li>
+<li>No intentes saltarte los límites de la app ni sobrecargar el servicio.</li>
+</ul>
+
+<h2>4. El contenido que aportas</h2>
+<p>Eres responsable de lo que envías. Al enviar un avistamiento concedes a Orcinus una licencia gratuita, no exclusiva, mundial y sin límite de tiempo para mostrarlo, guardarlo, combinarlo con otros y publicarlo o compartirlo, también como estadísticas o conjuntos de datos anónimos, incluso con terceros como investigadores. Durante los primeros 30 días puedes borrarlo con «Borrar mis datos»; después queda anónimo y ya no puede asociarse a ti.</p>
+
+<h2>5. Moderación</h2>
+<p>Los avistamientos que varios usuarios reportan se ocultan automáticamente. Podemos ocultar o borrar cualquier contenido que incumpla estos términos y limitar el uso a quien abuse. Si ves algo que no debería estar, usa «Reportar» en el avistamiento o escribe a {EMAIL}.</p>
+
+<h2>6. El servicio</h2>
+<p>Orcinus es gratuita y se ofrece tal cual. Puede tener fallos o interrupciones, y puede cambiar o dejar de funcionar en cualquier momento. No garantizamos su disponibilidad ni la exactitud de la información.</p>
+
+<h2>7. Responsabilidad</h2>
+<p>En la medida en que la ley lo permite, no respondemos de los daños derivados del uso de la app, de no poder usarla o de decisiones tomadas a partir de su información. Nada de esto limita la responsabilidad que la ley no permite excluir, como la derivada de dolo o culpa grave, ni tus derechos como consumidor.</p>
+
+<h2>8. Cambios</h2>
+<p>Podemos actualizar estos términos. Publicaremos aquí la nueva versión con su fecha. Si sigues usando la app después, aceptas la nueva versión.</p>
+
+<h2>9. Ley aplicable</h2>
+<p>Estos términos se rigen por la ley española. Si eres consumidor, conservas los derechos y la jurisdicción que te correspondan por ley.</p>
+
+<h2>10. Contacto</h2>
+<p>{EMAIL}</p>`
+},
+
+// ─────────────────────────────── ENGLISH ───────────────────────────────
+en: {
+privacy: `
+<h1>Privacy policy</h1>
+<div class="box"><p><strong>In short:</strong> Orcinus never asks for your name, email or phone number. The sightings you send are shown on the map for 4 days and, after 30 days, are no longer linked to your device. You can delete your data at any time in the app with "Delete my data". There is no advertising, no analytics and no selling of data.</p></div>
+
+<h2>1. Controller</h2>
+<p>Orcinus is a personal, non-profit project. Data controller: {OWNER}. Contact: {EMAIL}.</p>
+
+<h2>2. What data we process</h2>
+<ul>
+<li><strong>The sightings you send:</strong> position, date and time, type (observation, interaction or contact), number of orcas, notes, and whether the position comes from GPS or was marked on the map. They are public on the map for 4 days. Please don't write personal data about yourself or others in the notes (names, boat registrations, phone numbers).</li>
+<li><strong>An anonymous identifier:</strong> the first time you send, confirm or report, an anonymous account is created on your device, with no name, email or phone. It stops you confirming your own sightings, prevents duplicates and lets us apply limits against abuse. It is never shown to other users.</li>
+<li><strong>The link</strong> between that identifier and your sightings, confirmations and reports. It is private and deleted automatically after 30 days.</li>
+<li><strong>Your device's location,</strong> only if you allow it and only while the app is open. It is used on your own device to show your position and suggest the sighting's spot. It is only sent as the sighting's position when you send one.</li>
+<li><strong>Technical data:</strong> as with any website, your IP address and browser details reach the servers that deliver the app and the map (see section 5). Orcinus does not use them to identify or track you.</li>
+<li><strong>On your device</strong> we store your preferences (language and theme), the anonymous session, the list of what you have sent or confirmed, a copy of the latest sightings and any pending sends. They are needed for the app to work, including with no signal. There are no advertising or analytics cookies.</li>
+</ul>
+
+<h2>3. Purposes and legal basis</h2>
+<ul>
+<li><strong>Providing the service</strong> (showing the map and receiving your sightings): performance of the terms of use you accept when sending (Art. 6(1)(b) GDPR).</li>
+<li><strong>Security and abuse prevention</strong> (send limits, reports, moderation): legitimate interest (Art. 6(1)(f) GDPR).</li>
+<li><strong>Sighting history:</strong> once unlinked from your device, sightings are anonymous data. They are kept for statistics and for the study of orca interactions, and may be shared with researchers or public authorities.</li>
+</ul>
+<p>We do not sell personal data, show advertising or build profiles.</p>
+
+<h2>4. How long</h2>
+<table>
+<tr><th>Data</th><th>Period</th></tr>
+<tr><td>Sighting visible on the map</td><td>4 days</td></tr>
+<tr><td>Link between your device and your sightings, confirmations and reports</td><td>30 days; after that the sighting becomes anonymous</td></tr>
+<tr><td>Anonymous sighting</td><td>No limit, as history</td></tr>
+<tr><td>Anonymous identifier</td><td>While you use the app, or until you tap "Delete my data"</td></tr>
+<tr><td>Data stored on your device</td><td>Until you tap "Delete my data", clear your browser data or uninstall the app</td></tr>
+</table>
+
+<h2>5. Who else is involved</h2>
+<ul>
+<li><strong>Supabase</strong>: database and anonymous accounts, with servers in the European Union. It keeps technical security logs, including IP addresses, for a limited time.</li>
+<li><strong>GitHub</strong> (Microsoft): hosts the website and may log your IP. It is a US company certified under the EU-US Data Privacy Framework.</li>
+<li><strong>OpenStreetMap Foundation</strong>: your browser downloads the map images from its servers, so they receive your IP. It has its own <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">privacy policy</a>.</li>
+<li>Authorities, only where required by law.</li>
+</ul>
+<p>The app's libraries and fonts are hosted on the website itself, so your IP isn't sent to other services.</p>
+
+<h2>6. Your rights</h2>
+<p>You have the right of access, rectification, erasure, objection, restriction and portability. The quickest way to delete your data is "Delete my data", at the bottom of the app. For anything else, write to {EMAIL}.</p>
+<p>Because we don't ask for anything that identifies you, we may not be able to tell which data is yours (Art. 11 GDPR). If you tell us the specific sighting (approximate date, time and place), we will try to help.</p>
+<p>If you think we are not handling your data properly, you can complain to the Spanish Data Protection Agency (<a href="https://www.aepd.es" target="_blank" rel="noopener">aepd.es</a>) or the authority in your country.</p>
+
+<h2>7. Children</h2>
+<p>Orcinus is intended for people aged 14 and over.</p>
+
+<h2>8. Security</h2>
+<p>All connections are encrypted (HTTPS). The database rules stop any user from seeing who sent each sighting, or editing or deleting other people's data.</p>
+
+<h2>9. Changes</h2>
+<p>If we change this policy, we will publish the new version here with its date. If the change is significant, we will let you know in the app.</p>`,
+
+terms: `
+<h1>Terms of use</h1>
+<div class="box"><p><strong>Important:</strong> Orcinus is for information only. Sightings are contributed by other users, nobody verifies them, and they may be wrong or out of date. <strong>It is not a safety system or a navigation aid.</strong> Decisions on board are the skipper's responsibility.</p></div>
+
+<h2>1. What Orcinus is</h2>
+<p>Orcinus is a free, collaborative map where sailors share orca sightings and interactions. By using it you accept these terms.</p>
+
+<h2>2. Information only, not safety</h2>
+<ul>
+<li>Sightings are not verified and may be wrong, incomplete or late. Orcas move: a sighting from an hour ago may no longer be useful.</li>
+<li>No sightings in an area <strong>does not mean there are no orcas</strong>.</li>
+<li>Always follow the <a href="{MITECO}" target="_blank" rel="noopener">official guidance for sailors</a> (Spanish government, in Spanish) and the instructions of the maritime authorities.</li>
+<li>In an emergency, call <strong>112</strong> or use <strong>VHF channel 16</strong>. In Spain, Maritime Rescue (Salvamento Marítimo): <strong>+34 900 202 202</strong>.</li>
+</ul>
+
+<h2>3. Rules of use</h2>
+<ul>
+<li>Only report what you have seen, as accurately as possible. Don't send false, test or repeated reports.</li>
+<li>Don't write insults, advertising or anyone's personal data (names, boat registrations, phone numbers) in the notes.</li>
+<li><strong>Don't approach or follow orcas in order to report them.</strong> They are a protected species: the Iberian population is listed as vulnerable and disturbing them is prohibited.</li>
+<li>Don't use the app if it distracts you from handling the boat. Report when it is safe to do so.</li>
+<li>Don't try to get around the app's limits or overload the service.</li>
+</ul>
+
+<h2>4. Content you contribute</h2>
+<p>You are responsible for what you send. By sending a sighting, you grant Orcinus a free, non-exclusive, worldwide and perpetual licence to display, store and combine it with others, and to publish or share it, including as statistics or anonymous datasets, and with third parties such as researchers. During the first 30 days you can delete it with "Delete my data"; after that it becomes anonymous and can no longer be linked to you.</p>
+
+<h2>5. Moderation</h2>
+<p>Sightings reported by several users are hidden automatically. We may hide or delete any content that breaks these terms and restrict use by anyone who abuses the service. If you see something that shouldn't be there, use "Report" on the sighting or write to {EMAIL}.</p>
+
+<h2>6. The service</h2>
+<p>Orcinus is free and provided as is. It may have errors or interruptions, and it may change or stop working at any time. We do not guarantee its availability or the accuracy of its information.</p>
+
+<h2>7. Liability</h2>
+<p>To the extent permitted by law, we are not liable for damage arising from using the app, from being unable to use it, or from decisions taken based on its information. Nothing here limits liability that cannot be excluded by law, such as for wilful misconduct or gross negligence, or your rights as a consumer.</p>
+
+<h2>8. Changes</h2>
+<p>We may update these terms. We will publish the new version here with its date. If you keep using the app afterwards, you accept the new version.</p>
+
+<h2>9. Governing law</h2>
+<p>These terms are governed by Spanish law. If you are a consumer, you keep the rights and jurisdiction that the law gives you.</p>
+
+<h2>10. Contact</h2>
+<p>{EMAIL}</p>`
+},
+
+// ─────────────────────────────── PORTUGUÊS ───────────────────────────────
+pt: {
+privacy: `
+<h1>Política de privacidade</h1>
+<div class="box"><p><strong>Em resumo:</strong> o Orcinus não lhe pede nome, email nem telefone. Os avistamentos que envia aparecem no mapa durante 4 dias e, passados 30 dias, deixam de estar associados ao seu dispositivo. Pode apagar os seus dados a qualquer momento na app, com «Apagar os meus dados». Não há publicidade, nem análise de utilização, nem venda de dados.</p></div>
+
+<h2>1. Responsável</h2>
+<p>O Orcinus é um projeto pessoal sem fins lucrativos. Responsável pelo tratamento: {OWNER}. Contacto: {EMAIL}.</p>
+
+<h2>2. Que dados tratamos</h2>
+<ul>
+<li><strong>Os avistamentos que envia:</strong> posição, data e hora, tipo (observação, interação ou contacto), número de orcas, notas e se a posição vem do GPS ou foi marcada no mapa. São públicos no mapa durante 4 dias. Não escreva nas notas dados pessoais seus nem de outras pessoas (nomes, matrículas, telefones).</li>
+<li><strong>Um identificador anónimo:</strong> da primeira vez que envia, confirma ou denuncia, é criada no seu dispositivo uma conta anónima, sem nome, email nem telefone. Serve para impedir que confirme os seus próprios avistamentos, evitar duplicados e aplicar limites contra abusos. Nunca é mostrado a outros utilizadores.</li>
+<li><strong>A associação</strong> entre esse identificador e os seus avistamentos, confirmações e denúncias. É privada e apagada automaticamente ao fim de 30 dias.</li>
+<li><strong>A localização do seu dispositivo,</strong> só se der autorização e só com a app aberta. É usada no próprio dispositivo para mostrar a sua posição e propor o ponto do avistamento. Só é enviada como posição do avistamento quando é você a enviá-lo.</li>
+<li><strong>Dados técnicos:</strong> como em qualquer site, o seu endereço IP e os dados do navegador chegam aos servidores que fornecem a app e o mapa (ver ponto 5). O Orcinus não os usa para o identificar nem para o seguir.</li>
+<li><strong>No seu dispositivo</strong> ficam guardadas as suas preferências (idioma e tema), a sessão anónima, a lista do que enviou ou confirmou, uma cópia dos últimos avistamentos e os envios pendentes. São necessários para a app funcionar, também sem rede. Não há cookies de publicidade nem de análise.</li>
+</ul>
+
+<h2>3. Finalidades e fundamento jurídico</h2>
+<ul>
+<li><strong>Prestar o serviço</strong> (mostrar o mapa e receber os seus avistamentos): execução dos termos de utilização que aceita ao enviar (art. 6.º, n.º 1, al. b) do RGPD).</li>
+<li><strong>Segurança e prevenção de abusos</strong> (limites de envio, denúncias, moderação): interesse legítimo (art. 6.º, n.º 1, al. f) do RGPD).</li>
+<li><strong>Histórico de avistamentos:</strong> depois de desassociados do seu dispositivo, os avistamentos são dados anónimos. São conservados para estatísticas e para o estudo das interações com orcas, e podem ser partilhados com investigadores ou entidades públicas.</li>
+</ul>
+<p>Não vendemos dados pessoais, não mostramos publicidade e não criamos perfis.</p>
+
+<h2>4. Durante quanto tempo</h2>
+<table>
+<tr><th>Dado</th><th>Prazo</th></tr>
+<tr><td>Avistamento visível no mapa</td><td>4 dias</td></tr>
+<tr><td>Associação entre o seu dispositivo e os seus avistamentos, confirmações e denúncias</td><td>30 dias; depois o avistamento fica anónimo</td></tr>
+<tr><td>Avistamento anónimo</td><td>Sem prazo, como histórico</td></tr>
+<tr><td>Identificador anónimo</td><td>Enquanto usar a app ou até tocar em «Apagar os meus dados»</td></tr>
+<tr><td>Dados guardados no seu dispositivo</td><td>Até tocar em «Apagar os meus dados», apagar os dados do navegador ou desinstalar a app</td></tr>
+</table>
+
+<h2>5. Quem mais intervém</h2>
+<ul>
+<li><strong>Supabase</strong>: base de dados e contas anónimas, com servidores na União Europeia. Guarda registos técnicos de segurança, incluindo endereços IP, durante um tempo limitado.</li>
+<li><strong>GitHub</strong> (Microsoft): aloja o site e pode registar o seu IP. É uma empresa dos EUA aderente ao Quadro de Privacidade de Dados UE-EUA.</li>
+<li><strong>OpenStreetMap Foundation</strong>: o seu navegador descarrega dos servidores dela as imagens do mapa, pelo que recebem o seu IP. Tem a sua própria <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">política de privacidade</a>.</li>
+<li>Autoridades, apenas se a lei o exigir.</li>
+</ul>
+<p>As bibliotecas e os tipos de letra da app estão alojados no próprio site, para não enviar o seu IP a outros serviços.</p>
+
+<h2>6. Os seus direitos</h2>
+<p>Tem direito de acesso, retificação, apagamento, oposição, limitação e portabilidade. A forma mais rápida de apagar os seus dados é «Apagar os meus dados», na parte de baixo da app. Para qualquer outro pedido, escreva para {EMAIL}.</p>
+<p>Como não lhe pedimos nenhum dado que o identifique, pode acontecer que não saibamos que dados são seus (art. 11.º do RGPD). Se nos indicar o avistamento concreto (data, hora e local aproximados), tentaremos ajudar.</p>
+<p>Se considerar que não tratamos bem os seus dados, pode apresentar reclamação à Agência Espanhola de Proteção de Dados (<a href="https://www.aepd.es" target="_blank" rel="noopener">aepd.es</a>) ou à autoridade do seu país (em Portugal, a CNPD).</p>
+
+<h2>7. Menores</h2>
+<p>O Orcinus destina-se a maiores de 14 anos.</p>
+
+<h2>8. Segurança</h2>
+<p>Todas as ligações são cifradas (HTTPS). As regras da base de dados impedem que qualquer utilizador veja quem enviou cada avistamento, ou edite ou apague dados de outros.</p>
+
+<h2>9. Alterações</h2>
+<p>Se alterarmos esta política, publicaremos aqui a nova versão com a respetiva data. Se a alteração for importante, avisaremos na app.</p>`,
+
+terms: `
+<h1>Termos de utilização</h1>
+<div class="box"><p><strong>Importante:</strong> o Orcinus é apenas informativo. Os avistamentos são enviados por outros utilizadores, ninguém os verifica e podem estar errados ou desatualizados. <strong>Não é um sistema de segurança nem uma ajuda à navegação.</strong> As decisões a bordo são da responsabilidade do skipper.</p></div>
+
+<h2>1. O que é o Orcinus</h2>
+<p>O Orcinus é um mapa colaborativo e gratuito onde os navegadores partilham avistamentos e interações com orcas. Ao usá-lo, aceita estes termos.</p>
+
+<h2>2. Apenas informação, não segurança</h2>
+<ul>
+<li>Os avistamentos não são verificados e podem estar errados, incompletos ou chegar tarde. As orcas deslocam-se: um avistamento de há uma hora pode já não servir.</li>
+<li>Não haver avistamentos numa zona <strong>não significa que não haja orcas</strong>.</li>
+<li>Siga sempre as <a href="{MITECO}" target="_blank" rel="noopener">recomendações oficiais para navegadores</a> (Governo espanhol, em espanhol) e as indicações das autoridades marítimas.</li>
+<li>Em caso de emergência, ligue <strong>112</strong> ou use o <strong>canal 16 de VHF</strong>. Em Espanha, Salvamento Marítimo: <strong>+34 900 202 202</strong>.</li>
+</ul>
+
+<h2>3. Regras de utilização</h2>
+<ul>
+<li>Reporte apenas o que viu, com a maior exatidão possível. Não envie reportes falsos, de teste ou repetidos.</li>
+<li>Não escreva nas notas insultos, publicidade nem dados pessoais de ninguém (nomes, matrículas, telefones).</li>
+<li><strong>Não se aproxime nem persiga as orcas para as reportar.</strong> São uma espécie protegida: a população ibérica está classificada como vulnerável e é proibido perturbá-las.</li>
+<li>Não use a app se isso o distrair da condução do barco. Reporte quando for seguro.</li>
+<li>Não tente contornar os limites da app nem sobrecarregar o serviço.</li>
+</ul>
+
+<h2>4. O conteúdo que envia</h2>
+<p>É responsável pelo que envia. Ao enviar um avistamento, concede ao Orcinus uma licença gratuita, não exclusiva, mundial e sem limite de tempo para o mostrar, guardar, combinar com outros e publicar ou partilhar, incluindo como estatísticas ou conjuntos de dados anónimos, também com terceiros como investigadores. Durante os primeiros 30 dias pode apagá-lo com «Apagar os meus dados»; depois fica anónimo e já não pode ser associado a si.</p>
+
+<h2>5. Moderação</h2>
+<p>Os avistamentos denunciados por vários utilizadores são ocultados automaticamente. Podemos ocultar ou apagar qualquer conteúdo que viole estes termos e limitar a utilização a quem abuse. Se vir algo que não devia estar, use «Denunciar» no avistamento ou escreva para {EMAIL}.</p>
+
+<h2>6. O serviço</h2>
+<p>O Orcinus é gratuito e é fornecido tal como está. Pode ter falhas ou interrupções e pode mudar ou deixar de funcionar a qualquer momento. Não garantimos a sua disponibilidade nem a exatidão da informação.</p>
+
+<h2>7. Responsabilidade</h2>
+<p>Na medida em que a lei o permita, não respondemos por danos resultantes da utilização da app, da impossibilidade de a usar ou de decisões tomadas com base na sua informação. Nada disto limita a responsabilidade que a lei não permite excluir, como a resultante de dolo ou culpa grave, nem os seus direitos enquanto consumidor.</p>
+
+<h2>8. Alterações</h2>
+<p>Podemos atualizar estes termos. Publicaremos aqui a nova versão com a respetiva data. Se continuar a usar a app depois disso, aceita a nova versão.</p>
+
+<h2>9. Lei aplicável</h2>
+<p>Estes termos regem-se pela lei espanhola. Se for consumidor, mantém os direitos e o foro que a lei lhe confere.</p>
+
+<h2>10. Contacto</h2>
+<p>{EMAIL}</p>`
+},
+
+// ─────────────────────────────── FRANÇAIS ───────────────────────────────
+fr: {
+privacy: `
+<h1>Politique de confidentialité</h1>
+<div class="box"><p><strong>En bref :</strong> Orcinus ne vous demande ni nom, ni email, ni téléphone. Les observations que vous envoyez sont visibles sur la carte pendant 4 jours et, au bout de 30 jours, ne sont plus liées à votre appareil. Vous pouvez supprimer vos données à tout moment dans l'app avec « Supprimer mes données ». Pas de publicité, pas de mesure d'audience, pas de vente de données.</p></div>
+
+<h2>1. Responsable</h2>
+<p>Orcinus est un projet personnel sans but lucratif. Responsable du traitement : {OWNER}. Contact : {EMAIL}.</p>
+
+<h2>2. Quelles données nous traitons</h2>
+<ul>
+<li><strong>Les observations que vous envoyez :</strong> position, date et heure, type (observation, interaction ou contact), nombre d'orques, notes, et si la position vient du GPS ou a été placée sur la carte. Elles sont publiques sur la carte pendant 4 jours. N'écrivez pas dans les notes de données personnelles vous concernant ou concernant d'autres personnes (noms, immatriculations, téléphones).</li>
+<li><strong>Un identifiant anonyme :</strong> la première fois que vous envoyez, confirmez ou signalez, un compte anonyme est créé sur votre appareil, sans nom, email ni téléphone. Il sert à vous empêcher de confirmer vos propres observations, à éviter les doublons et à appliquer des limites contre les abus. Il n'est jamais montré aux autres utilisateurs.</li>
+<li><strong>Le lien</strong> entre cet identifiant et vos observations, confirmations et signalements. Il est privé et supprimé automatiquement au bout de 30 jours.</li>
+<li><strong>La position de votre appareil,</strong> seulement si vous l'autorisez et seulement quand l'app est ouverte. Elle est utilisée sur votre appareil pour afficher votre position et proposer l'emplacement de l'observation. Elle n'est envoyée que comme position d'une observation que vous envoyez.</li>
+<li><strong>Données techniques :</strong> comme pour tout site web, votre adresse IP et les informations de votre navigateur parviennent aux serveurs qui fournissent l'app et la carte (voir point 5). Orcinus ne les utilise pas pour vous identifier ni vous suivre.</li>
+<li><strong>Sur votre appareil</strong> sont enregistrés vos préférences (langue et thème), la session anonyme, la liste de ce que vous avez envoyé ou confirmé, une copie des dernières observations et les envois en attente. Ils sont nécessaires au fonctionnement de l'app, y compris sans réseau. Il n'y a pas de cookies publicitaires ni de mesure d'audience.</li>
+</ul>
+
+<h2>3. Finalités et base légale</h2>
+<ul>
+<li><strong>Fournir le service</strong> (afficher la carte et recevoir vos observations) : exécution des conditions d'utilisation que vous acceptez en envoyant (art. 6.1.b du RGPD).</li>
+<li><strong>Sécurité et prévention des abus</strong> (limites d'envoi, signalements, modération) : intérêt légitime (art. 6.1.f du RGPD).</li>
+<li><strong>Historique des observations :</strong> une fois détachées de votre appareil, les observations sont des données anonymes. Elles sont conservées pour des statistiques et pour l'étude des interactions avec les orques, et peuvent être partagées avec des chercheurs ou des administrations.</li>
+</ul>
+<p>Nous ne vendons pas de données personnelles, n'affichons pas de publicité et ne créons pas de profils.</p>
+
+<h2>4. Durée de conservation</h2>
+<table>
+<tr><th>Donnée</th><th>Durée</th></tr>
+<tr><td>Observation visible sur la carte</td><td>4 jours</td></tr>
+<tr><td>Lien entre votre appareil et vos observations, confirmations et signalements</td><td>30 jours ; ensuite l'observation devient anonyme</td></tr>
+<tr><td>Observation anonyme</td><td>Sans limite, comme historique</td></tr>
+<tr><td>Identifiant anonyme</td><td>Tant que vous utilisez l'app, ou jusqu'à ce que vous touchiez « Supprimer mes données »</td></tr>
+<tr><td>Données enregistrées sur votre appareil</td><td>Jusqu'à ce que vous touchiez « Supprimer mes données », effaciez les données du navigateur ou désinstalliez l'app</td></tr>
+</table>
+
+<h2>5. Qui d'autre intervient</h2>
+<ul>
+<li><strong>Supabase</strong> : base de données et comptes anonymes, avec des serveurs dans l'Union européenne. Conserve des journaux techniques de sécurité, y compris des adresses IP, pendant une durée limitée.</li>
+<li><strong>GitHub</strong> (Microsoft) : héberge le site et peut enregistrer votre IP. Entreprise américaine adhérant au cadre de protection des données UE-États-Unis.</li>
+<li><strong>OpenStreetMap Foundation</strong> : votre navigateur télécharge les images de la carte depuis ses serveurs, qui reçoivent donc votre IP. Elle a sa propre <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">politique de confidentialité</a>.</li>
+<li>Les autorités, uniquement si la loi l'exige.</li>
+</ul>
+<p>Les bibliothèques et les polices de l'app sont hébergées sur le site lui-même, pour ne pas envoyer votre IP à d'autres services.</p>
+
+<h2>6. Vos droits</h2>
+<p>Vous disposez des droits d'accès, de rectification, d'effacement, d'opposition, de limitation et de portabilité. Le plus rapide pour supprimer vos données est « Supprimer mes données », en bas de l'app. Pour toute autre demande, écrivez à {EMAIL}.</p>
+<p>Comme nous ne vous demandons aucune donnée permettant de vous identifier, il se peut que nous ne sachions pas quelles données sont les vôtres (art. 11 du RGPD). Si vous nous indiquez l'observation concernée (date, heure et lieu approximatifs), nous essaierons de vous aider.</p>
+<p>Si vous estimez que vos données ne sont pas bien traitées, vous pouvez saisir l'Agence espagnole de protection des données (<a href="https://www.aepd.es" target="_blank" rel="noopener">aepd.es</a>) ou l'autorité de votre pays (en France, la CNIL).</p>
+
+<h2>7. Mineurs</h2>
+<p>Orcinus est destiné aux personnes de 14 ans et plus.</p>
+
+<h2>8. Sécurité</h2>
+<p>Toutes les connexions sont chiffrées (HTTPS). Les règles de la base de données empêchent tout utilisateur de voir qui a envoyé chaque observation, ou de modifier ou supprimer les données des autres.</p>
+
+<h2>9. Modifications</h2>
+<p>Si nous modifions cette politique, nous publierons ici la nouvelle version avec sa date. Si la modification est importante, nous vous en informerons dans l'app.</p>`,
+
+terms: `
+<h1>Conditions d'utilisation</h1>
+<div class="box"><p><strong>Important :</strong> Orcinus est uniquement informatif. Les observations sont envoyées par d'autres utilisateurs, personne ne les vérifie, et elles peuvent être erronées ou dépassées. <strong>Ce n'est ni un système de sécurité ni une aide à la navigation.</strong> Les décisions à bord relèvent du chef de bord.</p></div>
+
+<h2>1. Qu'est-ce qu'Orcinus</h2>
+<p>Orcinus est une carte collaborative et gratuite où les navigateurs partagent leurs observations et interactions avec des orques. En l'utilisant, vous acceptez ces conditions.</p>
+
+<h2>2. Information uniquement, pas de sécurité</h2>
+<ul>
+<li>Les observations ne sont pas vérifiées et peuvent être erronées, incomplètes ou arriver en retard. Les orques se déplacent : une observation d'il y a une heure peut ne plus être utile.</li>
+<li>L'absence d'observations dans une zone <strong>ne signifie pas qu'il n'y a pas d'orques</strong>.</li>
+<li>Suivez toujours les <a href="{MITECO}" target="_blank" rel="noopener">recommandations officielles aux navigateurs</a> (gouvernement espagnol, en espagnol) et les consignes des autorités maritimes.</li>
+<li>En cas d'urgence, appelez le <strong>112</strong> ou utilisez le <strong>canal 16 VHF</strong>. En Espagne, Salvamento Marítimo : <strong>+34 900 202 202</strong>.</li>
+</ul>
+
+<h2>3. Règles d'utilisation</h2>
+<ul>
+<li>Signalez uniquement ce que vous avez vu, aussi précisément que possible. N'envoyez pas de signalements faux, de test ou répétés.</li>
+<li>N'écrivez dans les notes ni insultes, ni publicité, ni données personnelles de quiconque (noms, immatriculations, téléphones).</li>
+<li><strong>Ne vous approchez pas des orques et ne les suivez pas pour les signaler.</strong> C'est une espèce protégée : la population ibérique est classée vulnérable et il est interdit de la déranger.</li>
+<li>N'utilisez pas l'app si elle vous distrait de la conduite du bateau. Signalez quand c'est sans danger.</li>
+<li>N'essayez pas de contourner les limites de l'app ni de surcharger le service.</li>
+</ul>
+
+<h2>4. Le contenu que vous envoyez</h2>
+<p>Vous êtes responsable de ce que vous envoyez. En envoyant une observation, vous accordez à Orcinus une licence gratuite, non exclusive, mondiale et sans limite de durée pour l'afficher, la conserver, la combiner avec d'autres, la publier ou la partager, y compris sous forme de statistiques ou de jeux de données anonymes, et avec des tiers comme des chercheurs. Pendant les 30 premiers jours, vous pouvez la supprimer avec « Supprimer mes données » ; ensuite elle devient anonyme et ne peut plus être reliée à vous.</p>
+
+<h2>5. Modération</h2>
+<p>Les observations signalées par plusieurs utilisateurs sont masquées automatiquement. Nous pouvons masquer ou supprimer tout contenu contraire à ces conditions et limiter l'utilisation de ceux qui abusent du service. Si vous voyez quelque chose qui ne devrait pas y être, utilisez « Signaler » sur l'observation ou écrivez à {EMAIL}.</p>
+
+<h2>6. Le service</h2>
+<p>Orcinus est gratuit et fourni tel quel. Il peut connaître des erreurs ou des interruptions, et peut changer ou cesser de fonctionner à tout moment. Nous ne garantissons ni sa disponibilité ni l'exactitude des informations.</p>
+
+<h2>7. Responsabilité</h2>
+<p>Dans la mesure permise par la loi, nous ne sommes pas responsables des dommages résultant de l'utilisation de l'app, de l'impossibilité de l'utiliser ou de décisions prises sur la base de ses informations. Rien ici ne limite la responsabilité que la loi ne permet pas d'exclure, comme en cas de faute intentionnelle ou de faute lourde, ni vos droits de consommateur.</p>
+
+<h2>8. Modifications</h2>
+<p>Nous pouvons mettre à jour ces conditions. Nous publierons ici la nouvelle version avec sa date. Si vous continuez à utiliser l'app ensuite, vous acceptez la nouvelle version.</p>
+
+<h2>9. Droit applicable</h2>
+<p>Ces conditions sont régies par le droit espagnol. Si vous êtes consommateur, vous conservez les droits et la juridiction que la loi vous accorde.</p>
+
+<h2>10. Contact</h2>
+<p>{EMAIL}</p>`
+},
+};
+
+const ORCA = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90"><ellipse transform="matrix(-0.8359 0.5489 -0.5489 -0.8359 114.2132 30.2543)" cx="52.583" cy="32.202" rx="7.063" ry="3.263"/><path d="M75.112,19.229c-1.954-1.162-5.459-10.526-40.16-2.536c0,0-19.251-6.505-14.427-2.82c0,0,6.482,4.241,4.606,7.792C22.59,26.475,3.175,44.961,19.55,70.89c0,0-2.924,3.899-1.754,8.579c0.905,3.621,3.095-1.285,4.038-5.587c0.268-1.221,0.435-2.391,0.443-3.306c0-0.025,0.002-0.053,0.002-0.077c0,0-1.784-3.869-1.729-9.266c-0.006,0.069-0.043,0.644,0.112,2.956c0.209,3.101-0.138,4.557-0.649,5.508c-0.512,0.948-3.286-4.048-2.559-5.862c0.607-1.522-0.366-3.497-0.366-3.497c1.581,0.974,3.456,0.881,3.461,0.881c0.062-5.702,2.183-13.104,10.628-19.459c-0.011,0.007-0.028,0.019-0.028,0.019c-4.826-3.582-8.651,2.697-8.651,2.697c-0.95,1.022-3.082,4.088-3.509,0.439c-1.097-9.358,9.333-13.315,13.232-9.431c2.463,2.453,4.093,2.996,4.093,2.996c-0.066,0.035-0.151,0.083-0.246,0.139c2.617-1.444,5.647-2.799,9.167-4.021l13.497-3.669c2.095-3.79-1.401-4.691-1.401-4.691c6.618-6.434,8.628-3.65,8.628-3.65s2.159-0.895,3.983-0.518c3.811,0.792,5.708,1.301,6.714,0.664C77.663,21.937,77.934,20.907,75.112,19.229z M65.56,20.008c-2.192,2.681-4.447,0.584-6.806,0c-2.359-0.585-5.258-1.303-3.333-1.754C55.421,18.254,68.057,16.955,65.56,20.008z"/><path d="M21.755,26.455c0,0,8.566-8.51,8.639-5.115c0.073,3.396,0.073,3.762,4.972,1.423c0,0-6.186,4.562-7.752,2.588c-1.932-2.432-5.725,2.968-8.306,4.811L21.755,26.455z"/></svg>';
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function pickLang() {
+  const q = new URLSearchParams(location.search).get('lang');
+  if (LANGS.includes(q)) return q;
+  try { const s = localStorage.getItem('orcinus_lang'); if (LANGS.includes(s)) return s; } catch (e) {}
+  for (const l of (navigator.languages || [navigator.language || 'en'])) { const c = String(l).slice(0, 2).toLowerCase(); if (LANGS.includes(c)) return c; }
+  return 'en';
+}
+function fill(html, ui) {
+  const pend = `<span class="pending">${esc(ui.pending)}</span>`;
+  const email = EMAIL ? `<a href="mailto:${esc(EMAIL)}">${esc(EMAIL)}</a>` : pend;
+  return html.replaceAll('{OWNER}', OWNER ? esc(OWNER) : pend).replaceAll('{EMAIL}', email).replaceAll('{MITECO}', MITECO);
+}
+function render(lang, persist) {
+  const ui = UI[lang], doc = DOCS[lang];
+  if (persist) { try { localStorage.setItem('orcinus_lang', lang); } catch (e) {} }
+  document.documentElement.lang = lang;
+  document.title = 'Orcinus · ' + ui.priv + ' · ' + ui.terms;
+  document.getElementById('backTxt').textContent = ui.back;
+  document.getElementById('tabPriv').textContent = ui.priv;
+  document.getElementById('tabTerms').textContent = ui.terms;
+  const date = new Intl.DateTimeFormat(lang, { dateStyle:'long' }).format(new Date(UPDATED + 'T12:00:00'));
+  const upd = `<p class="updated">${esc(ui.updated)}: ${esc(date)}</p>`;
+  document.getElementById('privacy').innerHTML = fill(doc.privacy, ui).replace('</h1>', '</h1>' + upd);
+  document.getElementById('terms').innerHTML = fill(doc.terms, ui).replace('</h1>', '</h1>' + upd);
+  document.getElementById('langs').innerHTML = LANGS.map(l => `<button data-l="${l}" class="${l === lang ? 'on' : ''}">${l.toUpperCase()}</button>`).join('');
+  markTab();
+}
+function markTab() {
+  const terms = document.getElementById('terms').getBoundingClientRect().top < 160;
+  document.getElementById('tabPriv').classList.toggle('on', !terms);
+  document.getElementById('tabTerms').classList.toggle('on', terms);
+}
+document.getElementById('logo').innerHTML = ORCA.replace('viewBox="0 0 90 90"', 'viewBox="11.21 12.74 67.99 67.99"');
+document.getElementById('langs').addEventListener('click', e => { const b = e.target.closest('button[data-l]'); if (b) render(b.dataset.l, true); });
+addEventListener('scroll', markTab, { passive:true });
+render(pickLang(), false);
+if (location.hash) { const el = document.querySelector(location.hash); if (el) el.scrollIntoView(); }
+</script>
+</body>
+</html>
